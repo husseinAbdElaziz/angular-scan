@@ -1,0 +1,140 @@
+<div
+  class="toolbar"
+  role="complementary"
+  aria-label="Angular Scan DevTools"
+>
+  <div class="toolbar__header">
+    <span class="toolbar__logo" aria-hidden="true">◉</span>
+    <span class="toolbar__title">angular-scan</span>
+
+    <button
+      class="toolbar__btn"
+      type="button"
+      [attr.aria-pressed]="!config.enabled()"
+      [title]="config.enabled() ? 'Pause scanning' : 'Resume scanning'"
+      (click)="toggleEnabled()"
+    >{{ config.enabled() ? '⏸' : '▶' }}</button>
+
+    <button
+      class="toolbar__btn"
+      type="button"
+      [attr.aria-pressed]="settingsOpen()"
+      title="Settings"
+      (click)="toggleSettings()"
+    >⚙</button>
+
+    <button
+      class="toolbar__btn"
+      type="button"
+      [attr.aria-pressed]="expanded()"
+      [title]="expanded() ? 'Collapse inspector' : 'Expand inspector'"
+      (click)="toggleExpanded()"
+    >{{ expanded() ? '▲' : '▼' }}</button>
+  </div>
+
+  <div class="toolbar__stats">
+    <span class="toolbar__stat" title="Total change detection checks">
+      <span class="toolbar__stat-label">checks</span>
+      <strong class="toolbar__stat-value">{{ tracker.totalRenders() }}</strong>
+    </span>
+    <span
+      class="toolbar__stat"
+      [class.toolbar__stat--warn]="tracker.totalUnnecessary() > 0"
+      title="Unnecessary renders: component was checked but DOM did not change"
+    >
+      <span class="toolbar__stat-label">wasted</span>
+      <strong class="toolbar__stat-value">{{ tracker.totalUnnecessary() }}</strong>
+    </span>
+  </div>
+
+  @if (settingsOpen()) {
+    <div class="toolbar__settings" role="group" aria-label="Scan settings">
+
+      <label class="toolbar__setting">
+        <span class="toolbar__setting-label">Enable scanning</span>
+        <button
+          class="toolbar__toggle"
+          type="button"
+          role="switch"
+          [attr.aria-checked]="config.enabled()"
+          (click)="toggleEnabled()"
+          [class.toolbar__toggle--on]="config.enabled()"
+        >{{ config.enabled() ? 'ON' : 'OFF' }}</button>
+      </label>
+
+      <label class="toolbar__setting">
+        <span class="toolbar__setting-label">Flash overlay</span>
+        <button
+          class="toolbar__toggle"
+          type="button"
+          role="switch"
+          [attr.aria-checked]="config.showOverlay()"
+          (click)="toggleOverlay()"
+          [class.toolbar__toggle--on]="config.showOverlay()"
+        >{{ config.showOverlay() ? 'ON' : 'OFF' }}</button>
+      </label>
+
+      <label class="toolbar__setting">
+        <span class="toolbar__setting-label">Render badges</span>
+        <button
+          class="toolbar__toggle"
+          type="button"
+          role="switch"
+          [attr.aria-checked]="config.showBadges()"
+          (click)="toggleBadges()"
+          [class.toolbar__toggle--on]="config.showBadges()"
+        >{{ config.showBadges() ? 'ON' : 'OFF' }}</button>
+      </label>
+
+      <label class="toolbar__setting toolbar__setting--column">
+        <span class="toolbar__setting-label">
+          Flash duration
+          <span class="toolbar__setting-value">{{ config.flashDurationMs() }}ms</span>
+        </span>
+        <input
+          class="toolbar__slider"
+          type="range"
+          min="100"
+          max="2000"
+          step="100"
+          [value]="config.flashDurationMs()"
+          (input)="onFlashDurationChange($event)"
+          aria-label="Flash duration in milliseconds"
+        />
+      </label>
+
+      <button
+        class="toolbar__reset"
+        type="button"
+        title="Clear all render stats"
+        (click)="resetStats()"
+      >↺ Reset stats</button>
+
+    </div>
+  }
+
+  @if (expanded()) {
+    <div
+      class="toolbar__inspector"
+      role="list"
+      aria-label="Component render counts"
+    >
+      @for (comp of tracker.trackedComponents(); track comp.hostElement) {
+        <div
+          class="toolbar__component"
+          role="listitem"
+          [class.toolbar__component--warn]="comp.lastRenderKind === 'unnecessary'"
+          [title]="comp.componentName + ' — ' + comp.totalRenders + ' checks, ' + comp.unnecessaryRenders + ' wasted'"
+        >
+          <span class="toolbar__component-name">{{ comp.componentName }}</span>
+          <span class="toolbar__component-count">{{ comp.totalRenders }}</span>
+          @if (comp.unnecessaryRenders > 0) {
+            <span class="toolbar__component-wasted" aria-label="wasted renders">
+              {{ comp.unnecessaryRenders }}W
+            </span>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

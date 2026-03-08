@@ -1,0 +1,240 @@
+
+:host {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 2147483647;
+    font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .toolbar {
+    background: #0f1117;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-bottom: none;
+    border-right: none;
+    border-radius: 6px 0 0 0;
+    min-width: 200px;
+    max-width: 300px;
+    box-shadow: -2px -2px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .toolbar__header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    border-bottom: 1px solid #21262d;
+  }
+
+  .toolbar__logo {
+    color: #58a6ff;
+    font-size: 12px;
+  }
+
+  .toolbar__title {
+    font-weight: 600;
+    color: #58a6ff;
+    flex: 1;
+    letter-spacing: 0.02em;
+  }
+
+  .toolbar__btn {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 10px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .toolbar__btn:hover {
+    color: #c9d1d9;
+    border-color: #58a6ff;
+  }
+
+  .toolbar__btn:focus-visible {
+    outline: 2px solid #58a6ff;
+    outline-offset: 2px;
+  }
+
+  .toolbar__stats {
+    display: flex;
+    gap: 12px;
+    padding: 5px 8px;
+  }
+
+  .toolbar__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .toolbar__stat-label {
+    color: #8b949e;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .toolbar__stat-value {
+    color: #c9d1d9;
+  }
+
+  .toolbar__stat--warn .toolbar__stat-value {
+    color: #f85149;
+  }
+
+  .toolbar__inspector {
+    max-height: 220px;
+    overflow-y: auto;
+    border-top: 1px solid #21262d;
+  }
+
+  .toolbar__inspector::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .toolbar__inspector::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toolbar__inspector::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 2px;
+  }
+
+  .toolbar__component {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-bottom: 1px solid #161b22;
+    transition: background 0.1s;
+  }
+
+  .toolbar__component:hover {
+    background: #161b22;
+  }
+
+  .toolbar__component--warn {
+    background: rgba(248, 81, 73, 0.06);
+  }
+
+  .toolbar__component-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #8b949e;
+  }
+
+  .toolbar__component-count {
+    font-weight: 600;
+    color: #ffa657;
+    min-width: 20px;
+    text-align: right;
+  }
+
+  .toolbar__component-wasted {
+    color: #f85149;
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  .toolbar__settings {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-top: 1px solid #21262d;
+  }
+
+  .toolbar__setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: default;
+  }
+
+  .toolbar__setting--column {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .toolbar__setting-label {
+    color: #8b949e;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .toolbar__setting-value {
+    color: #58a6ff;
+    font-weight: 600;
+  }
+
+  .toolbar__toggle {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 1px 6px;
+    font-size: 9px;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    min-width: 32px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .toolbar__toggle--on {
+    background: rgba(88, 166, 255, 0.15);
+    border-color: #58a6ff;
+    color: #58a6ff;
+  }
+
+  .toolbar__toggle:focus-visible {
+    outline: 2px solid #58a6ff;
+    outline-offset: 2px;
+  }
+
+  .toolbar__slider {
+    width: 100%;
+    accent-color: #58a6ff;
+    cursor: pointer;
+    height: 4px;
+  }
+
+  .toolbar__reset {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-family: inherit;
+    margin-top: 2px;
+    transition: color 0.15s, border-color 0.15s;
+    align-self: flex-start;
+  }
+
+  .toolbar__reset:hover {
+    color: #f85149;
+    border-color: #f85149;
+  }
+
+  .toolbar__reset:focus-visible {
+    outline: 2px solid #58a6ff;
+    outline-offset: 2px;
+  }
