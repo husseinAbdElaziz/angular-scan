@@ -11,6 +11,8 @@ Zero overhead in production — the entire library is tree-shaken when `isDevMod
 
 Works with both **zone.js** and **zoneless** Angular applications.
 
+![angular-scan demo](https://unpkg.com/angular-scan/demo.gif)
+
 ---
 
 ## Installation
@@ -110,20 +112,3 @@ The canvas overlay (`position: fixed`, full viewport, `pointer-events: none`) us
 - Angular **≥ 20**
 - Must be used in **development mode** (`ng serve` / `ng build --configuration development`)
 - The Angular debug APIs (`window.ng`) are only available in dev mode — `angular-scan` is silently disabled otherwise
-
----
-
-## Building
-
-```bash
-ng build angular-scan
-```
-
-Output is placed in `dist/angular-scan`.
-
-## Publishing
-
-```bash
-cd dist/angular-scan
-npm publish
-```
