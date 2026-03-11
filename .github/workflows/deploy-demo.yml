@@ -32,7 +32,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: npx ng build demo --configuration production --base-href /angular-scan/
+      - run: npx ng build demo --configuration development --base-href /angular-scan/
 
       - uses: actions/upload-pages-artifact@v3
         with:
