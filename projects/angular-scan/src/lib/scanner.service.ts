@@ -1,42 +1,32 @@
 import {
-  Injectable,
-  inject,
-  isDevMode,
-  OnDestroy,
-  PLATFORM_ID,
-  Injector,
-  runInInjectionContext,
   afterEveryRender,
   AfterRenderRef,
+  DOCUMENT,
+  inject,
+  Injectable,
+  Injector,
+  isDevMode,
+  OnDestroy,
+  runInInjectionContext,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { ComponentTracker } from './component-tracker';
-import { OverlayService } from './overlay/overlay.service';
-import { ANGULAR_SCAN_OPTIONS } from './tokens';
+import type { NgDebugApi } from './models/NgDebugApi';
+import type { PendingUpdate } from './models/PendingUpdate';
+import { PROFILER_EVENTS as PE } from './models/ProfilerEvents';
 import { getNgDebugApi } from './ng-debug';
+import { OverlayService } from './overlay/overlay.service';
 import { ScanConfigService } from './scan-config.service';
-import type { NgDebugApi, RenderKind } from './types';
-
-// Angular profiler event IDs (stable contract in dev mode, used by Angular DevTools)
-const TemplateUpdateStart = 2;
-const ChangeDetectionStart = 12;
-const ChangeDetectionEnd = 13;
-const ChangeDetectionSyncStart = 14;
-const ChangeDetectionSyncEnd = 15;
-
-interface PendingUpdate {
-  instance: object;
-  hostElement: Element;
-  kind: RenderKind;
-}
+import { ANGULAR_SCAN_OPTIONS, WINDOW } from './tokens';
+import { buildMutatedHosts } from './utils/build-mutated-hosts';
+import { collectTickUpdates } from './utils/collect-tick-updates';
 
 @Injectable({ providedIn: 'root' })
 export class ScannerService implements OnDestroy {
   private readonly tracker = inject(ComponentTracker);
   private readonly overlay = inject(OverlayService);
   private readonly options = inject(ANGULAR_SCAN_OPTIONS);
-  private readonly platformId = inject(PLATFORM_ID);
-
+  private readonly win = inject(WINDOW);
+  private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
   private readonly config = inject(ScanConfigService);
 
@@ -44,75 +34,63 @@ export class ScannerService implements OnDestroy {
   private afterRenderRef: AfterRenderRef | null = null;
   private mutationObserver: MutationObserver | null = null;
 
-  // Accumulated during a single CD tick (raw DOM nodes, no signal writes)
-  private mutatedNodes = new Set<Node>();
-  // Component instances visited during the sync (template update) phase
-  private tickInstances = new Set<object>();
-
-  // Updates waiting to be flushed in afterEveryRender
+  private readonly mutatedNodes = new Set<Node>();
+  private readonly tickInstances = new Set<object>();
   private pendingFlush: PendingUpdate[] = [];
 
-  // Tracks which phase of CD we're in
   private inSyncPhase = false;
   private inTick = false;
-
-  // The toolbar component instance — excluded from tracking to avoid self-loops
   private toolbarInstance: object | null = null;
 
   initialize(): void {
     if (!isDevMode()) return;
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.win) return;
     if (this.options.enabled === false) return;
 
     const ng = getNgDebugApi();
     if (!ng) {
       console.warn(
         '[angular-scan] Angular debug APIs (window.ng) not available. ' +
-        'Ensure you are running in development mode.'
+          'Ensure you are running in development mode.',
       );
       return;
     }
 
-    // afterEveryRender is Angular's safe hook for post-render writes.
-    // Signal writes here cause exactly one extra toolbar render pass then stabilize,
-    // avoiding the infinite loop that queueMicrotask causes in zone.js + signals hybrid apps.
     this.afterRenderRef = runInInjectionContext(this.injector, () =>
-      afterEveryRender({ write: () => this.flushPendingUpdates() })
+      afterEveryRender({ write: () => this.flushPendingUpdates() }),
     );
 
-    this.mutationObserver = new MutationObserver(records => {
+    this.mutationObserver = new MutationObserver((records) => {
       for (const r of records) {
         this.mutatedNodes.add(r.target);
-        r.addedNodes.forEach(n => this.mutatedNodes.add(n));
-        r.removedNodes.forEach(n => this.mutatedNodes.add(n));
+        r.addedNodes.forEach((n) => this.mutatedNodes.add(n));
+        r.removedNodes.forEach((n) => this.mutatedNodes.add(n));
       }
     });
 
     this.removeProfiler = ng.ɵsetProfiler((event, instance) => {
       switch (event) {
-        case ChangeDetectionStart:
+        case PE.ChangeDetectionStart:
           this.onTickStart();
           break;
-        case ChangeDetectionSyncStart:
+        case PE.ChangeDetectionSyncStart:
           this.inSyncPhase = true;
           break;
-        case ChangeDetectionSyncEnd:
+        case PE.ChangeDetectionSyncEnd:
           this.inSyncPhase = false;
           break;
-        case TemplateUpdateStart:
-          // Only record during the real update phase, not the dev-mode checkNoChanges pass
+        case PE.TemplateUpdateStart:
           if (this.config.enabled() && this.inSyncPhase && instance && instance !== this.toolbarInstance) {
             this.tickInstances.add(instance);
           }
           break;
-        case ChangeDetectionEnd:
+        case PE.ChangeDetectionEnd:
           this.onTickEnd(ng);
           break;
       }
     });
   }
 
-  /** Exclude a component instance from render tracking (used for the toolbar). */
   setToolbarInstance(instance: object): void {
     this.toolbarInstance = instance;
   }
@@ -123,7 +101,7 @@ export class ScannerService implements OnDestroy {
     this.mutatedNodes.clear();
     this.tickInstances.clear();
 
-    this.mutationObserver?.observe(document.body, {
+    this.mutationObserver?.observe(this.document.body, {
       subtree: true,
       childList: true,
       attributes: true,
@@ -136,84 +114,29 @@ export class ScannerService implements OnDestroy {
     this.inTick = false;
     this.inSyncPhase = false;
 
-    // Synchronously flush pending mutation records before disconnecting
     const pending = this.mutationObserver?.takeRecords() ?? [];
     for (const r of pending) {
       this.mutatedNodes.add(r.target);
-      r.addedNodes.forEach(n => this.mutatedNodes.add(n));
-      r.removedNodes.forEach(n => this.mutatedNodes.add(n));
+      r.addedNodes.forEach((n) => this.mutatedNodes.add(n));
+      r.removedNodes.forEach((n) => this.mutatedNodes.add(n));
     }
     this.mutationObserver?.disconnect();
 
-    // Build a set of component host elements that had DOM mutations
-    // Walk mutated nodes UP to find their owning component host element
-    const mutatedHosts = this.buildMutatedHosts(ng);
+    const mutatedHosts = buildMutatedHosts(this.mutatedNodes, this.document.body, ng);
+    const updates = collectTickUpdates(this.tickInstances, mutatedHosts, ng);
 
-    // Collect updates as pure data — NO signal writes here (would trigger CD)
-    const pendingUpdates: PendingUpdate[] = [];
-
-    for (const instance of this.tickInstances) {
-      try {
-        const hostElement = ng.getHostElement(instance);
-        if (!hostElement) continue;
-
-        const hadMutation = mutatedHosts.has(hostElement);
-        const kind: RenderKind = hadMutation ? 'render' : 'unnecessary';
-
-        pendingUpdates.push({ instance, hostElement, kind });
-      } catch {
-        // Component may have been destroyed during the tick
-      }
-    }
-
-    // Queue for afterEveryRender to flush safely — no direct signal writes here.
-    this.pendingFlush.push(...pendingUpdates);
+    this.pendingFlush.push(...updates);
   }
 
-  /**
-   * Called by afterEveryRender. Drains pendingFlush into signals safely.
-   * If there are no pending updates, returns immediately so Angular stabilizes.
-   * If there are updates, signals are written → toolbar re-renders (one extra pass) → stabilizes.
-   */
   private flushPendingUpdates(): void {
     const updates = this.pendingFlush.splice(0);
     if (updates.length === 0) return;
 
-    for (const update of updates) {
-      const stats = this.tracker.recordRender(update.instance, update.hostElement, update.kind);
+    for (const { instance, hostElement, kind } of updates) {
+      const stats = this.tracker.recordRender(instance, hostElement, kind);
       this.overlay.onComponentChecked(stats);
     }
     this.tracker.snapshotTrackedComponents();
-  }
-
-  /**
-   * Build a Set of host Elements by walking each mutated node up the DOM tree
-   * until an Angular component boundary is found.
-   * This is O(mutatedNodes × depth) but depth is typically < 20.
-   */
-  private buildMutatedHosts(ng: NgDebugApi): Set<Element> {
-    const hosts = new Set<Element>();
-
-    for (const node of this.mutatedNodes) {
-      let current: Node | null = node;
-
-      while (current && current !== document.body) {
-        if (current instanceof Element) {
-          try {
-            const component = ng.getComponent(current);
-            if (component) {
-              hosts.add(current);
-              break;
-            }
-          } catch {
-            // ignore
-          }
-        }
-        current = current.parentNode;
-      }
-    }
-
-    return hosts;
   }
 
   ngOnDestroy(): void {

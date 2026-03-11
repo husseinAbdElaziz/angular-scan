@@ -1,38 +1,38 @@
-import { Injectable, inject, isDevMode, DOCUMENT, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { CanvasOverlay } from './canvas-overlay';
-import { ANGULAR_SCAN_OPTIONS } from '../tokens';
+import { Injectable, inject, isDevMode, DOCUMENT } from '@angular/core';
+import type { CanvasOverlay } from '../models/CanvasOverlay';
+import type { ComponentStats } from '../models/ComponentStats';
+import { createCanvasOverlay } from './canvas-overlay';
+import { ANGULAR_SCAN_OPTIONS, WINDOW } from '../tokens';
 import { ScanConfigService } from '../scan-config.service';
-import type { ComponentStats } from '../types';
 
 @Injectable({ providedIn: 'root' })
 export class OverlayService {
   private readonly document = inject(DOCUMENT);
-  private readonly platformId = inject(PLATFORM_ID);
+  private readonly win = inject(WINDOW);
   private readonly options = inject(ANGULAR_SCAN_OPTIONS);
   private readonly config = inject(ScanConfigService);
-  private readonly canvas = new CanvasOverlay();
 
-  // Badge elements keyed by host element
+  private canvas: CanvasOverlay | null = null;
   private readonly badges = new Map<Element, HTMLElement>();
 
   initialize(): void {
     if (!isDevMode()) return;
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.win) return;  // null in SSR
     if (this.options.enabled === false) return;
 
-    this.canvas.attach(this.document);
+    this.canvas = createCanvasOverlay(this.document, this.win);
   }
 
   destroy(): void {
-    this.canvas.detach();
+    this.canvas?.detach();
+    this.canvas = null;
     for (const badge of this.badges.values()) badge.remove();
     this.badges.clear();
   }
 
   onComponentChecked(stats: ComponentStats): void {
     if (this.config.showOverlay()) {
-      this.canvas.flash(stats.hostElement, stats.lastRenderKind, this.config.flashDurationMs());
+      this.canvas?.flash(stats.hostElement, stats.lastRenderKind, this.config.flashDurationMs());
     }
 
     if (this.config.showBadges()) {
@@ -69,7 +69,6 @@ export class OverlayService {
         'white-space:nowrap',
       ].join(';');
 
-      // Host element must be non-static to contain an absolutely-positioned badge
       this.ensurePositioned(stats.hostElement);
       stats.hostElement.appendChild(badge);
       this.badges.set(stats.hostElement, badge);

@@ -13,7 +13,7 @@ import { ScannerService } from './scanner.service';
 import { OverlayService } from './overlay/overlay.service';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { ANGULAR_SCAN_OPTIONS } from './tokens';
-import type { AngularScanOptions } from './types';
+import type { AngularScanOptions } from './models/AngularScanOptions';
 
 /**
  * Provides angular-scan for development-time render tracking.
@@ -43,35 +43,35 @@ export function provideAngularScan(options: AngularScanOptions = {}): Environmen
   };
 
   return makeEnvironmentProviders([
-    {
-      provide: ANGULAR_SCAN_OPTIONS,
-      useValue: resolvedOptions,
-    },
+    { provide: ANGULAR_SCAN_OPTIONS, useValue: resolvedOptions },
     provideEnvironmentInitializer(() => {
-        const overlay = inject(OverlayService);
-        const scanner = inject(ScannerService);
-        const opts = inject(ANGULAR_SCAN_OPTIONS);
+      const overlay = inject(OverlayService);
+      const scanner = inject(ScannerService);
+      const opts = inject(ANGULAR_SCAN_OPTIONS);
 
-        overlay.initialize();
-        scanner.initialize();
+      overlay.initialize();
+      scanner.initialize();
 
-        if (opts.showToolbar !== false) {
-          const injector = inject(EnvironmentInjector);
-          const doc = inject(DOCUMENT);
-          const appRef = inject(ApplicationRef);
-
-          // Create the toolbar outside Angular's component tree so it doesn't
-          // appear in CD tracking. Attach it to ApplicationRef so signals work.
-          const toolbarRef = createComponent(ToolbarComponent, {
-            environmentInjector: injector,
-          });
-
-          doc.body.appendChild(toolbarRef.location.nativeElement);
-          appRef.attachView(toolbarRef.hostView);
-
-          // Tell the scanner to ignore the toolbar's own renders
-          scanner.setToolbarInstance(toolbarRef.instance);
-        }
+      if (opts.showToolbar !== false) {
+        mountToolbar(scanner);
+      }
     }),
   ]);
+}
+
+/** Create the toolbar outside Angular's component tree and attach it to the DOM. */
+function mountToolbar(scanner: ScannerService): void {
+  const injector = inject(EnvironmentInjector);
+  const doc = inject(DOCUMENT);
+  const appRef = inject(ApplicationRef);
+
+  // Creating outside the component tree means it won't appear in CD tracking.
+  // Attaching to ApplicationRef ensures signals and change detection work.
+  const toolbarRef = createComponent(ToolbarComponent, { environmentInjector: injector });
+
+  doc.body.appendChild(toolbarRef.location.nativeElement);
+  appRef.attachView(toolbarRef.hostView);
+
+  // Tell the scanner to exclude the toolbar's own renders
+  scanner.setToolbarInstance(toolbarRef.instance);
 }

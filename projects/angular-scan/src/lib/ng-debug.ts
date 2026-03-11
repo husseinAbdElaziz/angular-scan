@@ -1,4 +1,4 @@
-import type { NgDebugApi } from './types';
+import type { NgDebugApi } from './models/NgDebugApi';
 
 /**
  * Returns the Angular debug API (window.ng) if available.

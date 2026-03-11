@@ -1,121 +1,105 @@
-import type { RenderKind } from '../types';
+import type { CanvasOverlay } from '../models/CanvasOverlay';
+import type { FlashRect } from '../models/FlashRect';
+import type { OverlayState } from '../models/OverlayState';
+import type { RenderKind } from '../models/RenderKind';
 
-interface FlashRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  kind: RenderKind;
-  startTime: number;
-  durationMs: number;
+const RENDER_COLOR = '255, 200, 0'; // yellow — normal re-render
+const UNNECESSARY_COLOR = '255, 60, 60'; // red — unnecessary render
+
+// --- Pure helpers ---
+
+function createCanvas(doc: Document): HTMLCanvasElement {
+  const canvas = doc.createElement('canvas');
+  canvas.setAttribute('aria-hidden', 'true');
+  canvas.setAttribute('role', 'presentation');
+  canvas.style.cssText = [
+    'position:fixed',
+    'top:0',
+    'left:0',
+    'width:100%',
+    'height:100%',
+    'pointer-events:none',
+    'z-index:2147483646',
+  ].join(';');
+  return canvas;
 }
 
-// rgb(...) strings for fill and stroke
-const RENDER_COLOR = '255, 200, 0';       // yellow — normal re-render
-const UNNECESSARY_COLOR = '255, 60, 60';  // red — unnecessary render
+function resizeCanvas(canvas: HTMLCanvasElement, win: Window & typeof globalThis): void {
+  canvas.width = win.innerWidth;
+  canvas.height = win.innerHeight;
+}
 
-export class CanvasOverlay {
-  private canvas: HTMLCanvasElement | null = null;
-  private ctx: CanvasRenderingContext2D | null = null;
-  private rects: FlashRect[] = [];
-  private rafId = 0;
-  private attached = false;
+function toFlashRect(
+  element: Element,
+  kind: RenderKind,
+  durationMs: number,
+  win: Window & typeof globalThis,
+): FlashRect | null {
+  const { left, top, width, height } = element.getBoundingClientRect();
+  if (width === 0 || height === 0) return null;
 
-  attach(doc: Document): void {
-    if (this.attached) return;
+  return { x: left, y: top, width, height, kind, startTime: win.performance.now(), durationMs };
+}
 
-    const canvas = doc.createElement('canvas');
-    canvas.setAttribute('aria-hidden', 'true');
-    canvas.setAttribute('role', 'presentation');
-    canvas.style.cssText = [
-      'position:fixed',
-      'top:0',
-      'left:0',
-      'width:100%',
-      'height:100%',
-      'pointer-events:none',
-      `z-index:2147483646`,
-    ].join(';');
+function drawRect(ctx: CanvasRenderingContext2D, r: FlashRect, now: number): void {
+  const elapsed = now - r.startTime;
+  const alpha = Math.max(0, 1 - elapsed / r.durationMs);
+  const color = r.kind === 'render' ? RENDER_COLOR : UNNECESSARY_COLOR;
 
-    doc.body.appendChild(canvas);
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.attached = true;
+  ctx.fillStyle = `rgba(${color}, ${alpha * 0.1})`;
+  ctx.fillRect(r.x, r.y, r.width, r.height);
 
-    this.resize();
-    window.addEventListener('resize', this.onResize);
+  ctx.strokeStyle = `rgba(${color}, ${alpha * 0.9})`;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(r.x + 1, r.y + 1, r.width - 2, r.height - 2);
+}
 
-    this.scheduleFrame();
-  }
+function renderFrame(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  rects: readonly FlashRect[],
+  now: number,
+): FlashRect[] {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const active = rects.filter((r) => now - r.startTime < r.durationMs);
+  for (const r of active) drawRect(ctx, r, now);
+  return active;
+}
 
-  detach(): void {
-    if (!this.attached) return;
-    this.attached = false;
-    cancelAnimationFrame(this.rafId);
-    window.removeEventListener('resize', this.onResize);
-    this.canvas?.remove();
-    this.canvas = null;
-    this.ctx = null;
-    this.rects = [];
-  }
+/**
+ * Creates a canvas overlay, attaches it to the document, and starts the render loop.
+ * Returns a minimal interface: flash to queue an animation, detach to clean up.
+ */
+export function createCanvasOverlay(doc: Document, win: Window & typeof globalThis): CanvasOverlay {
+  let state: OverlayState = { rects: [], rafId: 0 };
 
-  /** Queue a flash animation over an element's bounding rect. */
-  flash(element: Element, kind: RenderKind, durationMs: number): void {
-    if (!this.attached) return;
+  const canvas = createCanvas(doc);
+  doc.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d')!;
 
-    const rect = element.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
+  const onResize = (): void => resizeCanvas(canvas, win);
+  const loop = (now: number): void => {
+    state = {
+      rects: renderFrame(ctx, canvas, state.rects, now),
+      rafId: win.requestAnimationFrame(loop),
+    };
+  };
 
-    this.rects.push({
-      x: rect.left,
-      y: rect.top,
-      width: rect.width,
-      height: rect.height,
-      kind,
-      startTime: performance.now(),
-      durationMs,
-    });
-  }
+  resizeCanvas(canvas, win);
+  win.addEventListener('resize', onResize);
+  state = { ...state, rafId: win.requestAnimationFrame(loop) };
 
-  private readonly onResize = (): void => this.resize();
+  return {
+    flash(element, kind, durationMs) {
+      const rect = toFlashRect(element, kind, durationMs, win);
+      if (rect) state = { ...state, rects: [...state.rects, rect] };
+    },
 
-  private resize(): void {
-    if (!this.canvas) return;
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-  }
-
-  private scheduleFrame(): void {
-    if (!this.attached) return;
-    this.rafId = requestAnimationFrame(this.drawFrame);
-  }
-
-  private readonly drawFrame = (now: number): void => {
-    if (!this.ctx || !this.canvas || !this.attached) return;
-
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Decay alphas and remove expired rects
-    this.rects = this.rects.filter(r => {
-      const elapsed = now - r.startTime;
-      return elapsed < r.durationMs;
-    });
-
-    for (const r of this.rects) {
-      const elapsed = now - r.startTime;
-      const alpha = Math.max(0, 1 - elapsed / r.durationMs);
-      const color = r.kind === 'render' ? RENDER_COLOR : UNNECESSARY_COLOR;
-
-      // Semi-transparent fill
-      this.ctx!.fillStyle = `rgba(${color}, ${alpha * 0.1})`;
-      this.ctx!.fillRect(r.x, r.y, r.width, r.height);
-
-      // Solid border
-      this.ctx!.strokeStyle = `rgba(${color}, ${alpha * 0.9})`;
-      this.ctx!.lineWidth = 2;
-      this.ctx!.strokeRect(r.x + 1, r.y + 1, r.width - 2, r.height - 2);
-    }
-
-    this.scheduleFrame();
+    detach() {
+      win.cancelAnimationFrame(state.rafId);
+      win.removeEventListener('resize', onResize);
+      canvas.remove();
+      state = { rects: [], rafId: 0 };
+    },
   };
 }

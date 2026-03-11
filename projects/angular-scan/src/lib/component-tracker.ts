@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import type { ComponentStats, RenderKind } from './types';
+import type { RenderKind } from './models/RenderKind';
+import type { ComponentStats } from './models/ComponentStats';
 
 @Injectable({ providedIn: 'root' })
 export class ComponentTracker {
@@ -25,32 +26,31 @@ export class ComponentTracker {
    * Use queueMicrotask() to defer calls from profiler events.
    */
   recordRender(instance: object, hostElement: Element, kind: RenderKind): ComponentStats {
-    let stats = this.byInstance.get(instance);
+    const prev = this.byInstance.get(instance) ?? {
+      componentName: instance.constructor.name,
+      hostElement,
+      totalRenders: 0,
+      unnecessaryRenders: 0,
+      lastRenderKind: kind,
+      lastRenderTimestamp: 0,
+    };
 
-    if (!stats) {
-      stats = {
-        componentName: instance.constructor.name,
-        hostElement,
-        totalRenders: 0,
-        unnecessaryRenders: 0,
-        lastRenderKind: kind,
-        lastRenderTimestamp: 0,
-      };
-      this.byInstance.set(instance, stats);
-      this.byElement.set(hostElement, instance);
-    }
+    const isUnnecessary = kind === 'unnecessary';
+    const next: ComponentStats = {
+      ...prev,
+      totalRenders: prev.totalRenders + 1,
+      unnecessaryRenders: prev.unnecessaryRenders + (isUnnecessary ? 1 : 0),
+      lastRenderKind: kind,
+      lastRenderTimestamp: Date.now(),
+    };
 
-    stats.totalRenders++;
-    stats.lastRenderKind = kind;
-    stats.lastRenderTimestamp = Date.now();
+    this.byInstance.set(instance, next);
+    this.byElement.set(hostElement, instance);
 
-    if (kind === 'unnecessary') {
-      stats.unnecessaryRenders++;
-      this._totalUnnecessary.update(n => n + 1);
-    }
+    this._totalRenders.update((n) => n + 1);
+    if (isUnnecessary) this._totalUnnecessary.update((n) => n + 1);
 
-    this._totalRenders.update(n => n + 1);
-    return stats;
+    return next;
   }
 
   /**

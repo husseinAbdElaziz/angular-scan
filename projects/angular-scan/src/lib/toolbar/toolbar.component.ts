@@ -11,7 +11,7 @@ import { ScanConfigService } from '../scan-config.service';
   selector: 'angular-scan-toolbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './toolbar.component.html',
-  styleUrls: ['./toolbar.component.scss'],
+  styleUrl: './toolbar.component.scss',
   host: { '[style.display]': '"block"' },
 })
 export class ToolbarComponent {
@@ -22,25 +22,25 @@ export class ToolbarComponent {
   protected readonly settingsOpen = signal(false);
 
   protected toggleExpanded(): void {
-    this.expanded.set(!this.expanded());
+    this.expanded.update(v => !v);
     if (this.expanded()) this.settingsOpen.set(false);
   }
 
   protected toggleSettings(): void {
-    this.settingsOpen.set(!this.settingsOpen());
+    this.settingsOpen.update(v => !v);
     if (this.settingsOpen()) this.expanded.set(false);
   }
 
   protected toggleEnabled(): void {
-    this.config.enabled.set(!this.config.enabled());
+    this.config.enabled.update(v => !v);
   }
 
   protected toggleOverlay(): void {
-    this.config.showOverlay.set(!this.config.showOverlay());
+    this.config.showOverlay.update(v => !v);
   }
 
   protected toggleBadges(): void {
-    this.config.showBadges.set(!this.config.showBadges());
+    this.config.showBadges.update(v => !v);
   }
 
   protected resetStats(): void {
