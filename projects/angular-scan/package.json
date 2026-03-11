@@ -1,6 +1,30 @@
 {
   "name": "angular-scan",
-  "version": "0.2.0",
+  "version": "0.2.1",
+  "description": "Automatically detects and highlights Angular components that are re-rendering — the Angular equivalent of react-scan.",
+  "author": "Hussein AbdElAziz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/husseinAbdElaziz/angular-scan.git"
+  },
+  "homepage": "https://husseinabdelaziz.github.io/angular-scan",
+  "bugs": {
+    "url": "https://github.com/husseinAbdElaziz/angular-scan/issues"
+  },
+  "keywords": [
+    "angular",
+    "devtools",
+    "performance",
+    "change-detection",
+    "re-render",
+    "debug",
+    "profiler",
+    "react-scan",
+    "angular-scan",
+    "signals",
+    "onpush"
+  ],
   "peerDependencies": {
     "@angular/common": ">=20.0.0",
     "@angular/core": ">=20.0.0"
