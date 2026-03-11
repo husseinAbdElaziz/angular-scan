@@ -13,6 +13,8 @@ Works with both **zone.js** and **zoneless** Angular applications.
 
 ![angular-scan demo](https://unpkg.com/angular-scan/demo.gif)
 
+👉 **[Live Demo](https://husseinabdelaziz.github.io/angular-scan)**
+
 ---
 
 ## Installation

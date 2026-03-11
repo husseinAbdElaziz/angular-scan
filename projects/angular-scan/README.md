@@ -13,6 +13,8 @@ Works with both **zone.js** and **zoneless** Angular applications.
 
 ![angular-scan demo](https://unpkg.com/angular-scan/demo.gif)
 
+👉 **[Live Demo](https://husseinabdelaziz.github.io/angular-scan)**
+
 ---
 
 ## Installation
@@ -35,9 +37,7 @@ import { ApplicationConfig } from '@angular/core';
 import { provideAngularScan } from 'angular-scan';
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideAngularScan(),
-  ],
+  providers: [provideAngularScan()],
 };
 ```
 
@@ -70,10 +70,10 @@ stop(); // removes overlay and stops tracking
 
 ```ts
 provideAngularScan({
-  enabled: true,         // set false to disable entirely (default: true)
-  flashDurationMs: 500,  // how long the flash animation lasts in ms (default: 500)
-  showBadges: true,      // show render count badges on host elements (default: true)
-  showToolbar: true,     // show the floating toolbar HUD (default: true)
+  enabled: true, // set false to disable entirely (default: true)
+  flashDurationMs: 500, // how long the flash animation lasts in ms (default: 500)
+  showBadges: true, // show render count badges on host elements (default: true)
+  showToolbar: true, // show the floating toolbar HUD (default: true)
 });
 ```
 
@@ -98,12 +98,12 @@ The canvas overlay (`position: fixed`, full viewport, `pointer-events: none`) us
 
 ## Interpreting the output
 
-| Signal | Meaning | Common cause |
-|--------|---------|-------------|
-| Yellow flash | Component re-rendered (DOM changed) | Normal update — signal/input changed |
-| Red flash | Component checked but DOM unchanged | Parent uses `Default` CD strategy; child is `OnPush` with no changed inputs |
-| High wasted count on a component | It's being checked unnecessarily on every tick | Wrap it in `OnPush`; ensure parent isn't `Default` CD |
-| Counter badge turns red | More unnecessary than necessary renders | Same as above — component is `OnPush` but still gets walked |
+| Signal                           | Meaning                                        | Common cause                                                                |
+| -------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| Yellow flash                     | Component re-rendered (DOM changed)            | Normal update — signal/input changed                                        |
+| Red flash                        | Component checked but DOM unchanged            | Parent uses `Default` CD strategy; child is `OnPush` with no changed inputs |
+| High wasted count on a component | It's being checked unnecessarily on every tick | Wrap it in `OnPush`; ensure parent isn't `Default` CD                       |
+| Counter badge turns red          | More unnecessary than necessary renders        | Same as above — component is `OnPush` but still gets walked                 |
 
 ---
 
