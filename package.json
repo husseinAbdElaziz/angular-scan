@@ -1,5 +1,5 @@
 {
-  "name": "ui-cd",
+  "name": "angular-scan-ws",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -11,7 +11,7 @@
     "publish:lib": "ng build angular-scan && cd dist/angular-scan && npm publish"
   },
   "private": true,
-  "packageManager": "npm@11.9.0",
+  "packageManager": "pnpm@10.32.1",
   "dependencies": {
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",

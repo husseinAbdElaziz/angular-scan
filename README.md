@@ -1,59 +1,114 @@
-# UiCd
+# angular-scan
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.1.
+Automatically detects and highlights Angular components that are re-rendering — the Angular equivalent of [react-scan](https://github.com/aidenybai/react-scan).
 
-## Development server
+- **Yellow flash** — component was checked and its DOM changed (normal re-render)
+- **Red flash** — component was checked but its DOM did **not** change (unnecessary render)
+- **Counter badge** — cumulative render count on each component host element
+- **Toolbar HUD** — floating panel with total checks, wasted renders, and a per-component inspector
 
-To start a local development server, run:
+Zero overhead in production — the entire library is tree-shaken when `isDevMode()` returns `false`.
 
-```bash
-ng serve
-```
+Works with both **zone.js** and **zoneless** Angular applications.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+![angular-scan demo](https://unpkg.com/angular-scan/demo.gif)
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Installation
 
 ```bash
-ng generate --help
+npm install angular-scan --save-dev
 ```
 
-## Building
+---
 
-To build the project run:
+## Usage
 
-```bash
-ng build
+### Provider-based (recommended)
+
+Add `provideAngularScan()` to your application providers:
+
+```ts
+// app.config.ts
+import { ApplicationConfig } from '@angular/core';
+import { provideAngularScan } from 'angular-scan';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideAngularScan(),
+  ],
+};
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### Imperative API
 
-## Running unit tests
+For micro-frontends or apps where you can't modify providers, call `scan()` before `bootstrapApplication`:
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+```ts
+// main.ts
+import { bootstrapApplication } from '@angular/platform-browser';
+import { scan } from 'angular-scan';
+import { AppComponent } from './app/app.component';
+import { appConfig } from './app/app.config';
 
-```bash
-ng test
+scan();
+bootstrapApplication(AppComponent, appConfig);
 ```
 
-## Running end-to-end tests
+`scan()` returns a teardown function:
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```ts
+const stop = scan();
+// later...
+stop(); // removes overlay and stops tracking
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## Options
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```ts
+provideAngularScan({
+  enabled: true,         // set false to disable entirely (default: true)
+  flashDurationMs: 500,  // how long the flash animation lasts in ms (default: 500)
+  showBadges: true,      // show render count badges on host elements (default: true)
+  showToolbar: true,     // show the floating toolbar HUD (default: true)
+});
+```
+
+The same options are accepted by `scan()`.
+
+---
+
+## How it works
+
+Angular exposes `window.ng.ɵsetProfiler()` in development mode — the same hook used by Angular DevTools in Chrome. `angular-scan` registers a profiler callback to intercept every change detection cycle:
+
+1. **`ChangeDetectionStart`** — a `MutationObserver` begins recording all DOM mutations
+2. **`ChangeDetectionSyncStart/End`** — gates which `TemplateUpdateStart` events count as real renders (excludes the dev-mode `checkNoChanges` pass)
+3. **`TemplateUpdateStart`** — the exact component instance being checked is captured
+4. **`ChangeDetectionEnd`** — `MutationObserver.takeRecords()` flushes synchronously; each captured instance is mapped to its host element via `ng.getHostElement()`; components whose subtree had DOM mutations are marked as **renders**, the rest as **unnecessary renders**
+
+All Angular signal writes are deferred via `queueMicrotask()` to avoid triggering a new CD cycle from inside the profiler callback.
+
+The canvas overlay (`position: fixed`, full viewport, `pointer-events: none`) uses a `requestAnimationFrame` loop to draw and fade rectangles over component host elements. The toolbar is created via `createComponent()` and attached to `ApplicationRef` outside the normal component tree, so its own renders are excluded from tracking.
+
+---
+
+## Interpreting the output
+
+| Signal | Meaning | Common cause |
+|--------|---------|-------------|
+| Yellow flash | Component re-rendered (DOM changed) | Normal update — signal/input changed |
+| Red flash | Component checked but DOM unchanged | Parent uses `Default` CD strategy; child is `OnPush` with no changed inputs |
+| High wasted count on a component | It's being checked unnecessarily on every tick | Wrap it in `OnPush`; ensure parent isn't `Default` CD |
+| Counter badge turns red | More unnecessary than necessary renders | Same as above — component is `OnPush` but still gets walked |
+
+---
+
+## Requirements
+
+- Angular **≥ 20**
+- Must be used in **development mode** (`ng serve` / `ng build --configuration development`)
+- The Angular debug APIs (`window.ng`) are only available in dev mode — `angular-scan` is silently disabled otherwise
