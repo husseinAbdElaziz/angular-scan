@@ -1,0 +1,23 @@
+<div class="card">
+  <h3 class="card__title">
+    Static Display
+    <span class="card__badge card__badge--onpush">OnPush</span>
+    <span class="card__badge card__badge--warn">Wasted ↑</span>
+  </h3>
+  <p class="card__desc">
+    Uses <code>ChangeDetectionStrategy.OnPush</code> but has no inputs that change. Angular still
+    checks it on every parent tick → appears as a <strong>red (unnecessary) render</strong> in
+    angular-scan.
+  </p>
+  <div class="static__content">
+    <span class="static__icon" aria-hidden="true">🗿</span>
+    <div>
+      <div class="static__label">This content never changes</div>
+      <div class="static__value">Version 1.0.0 — Build {{ buildId }}</div>
+    </div>
+  </div>
+  <div class="static__note">
+    <code>markForCheck()</code> calls: <strong>{{ markCount() }}</strong>
+    <button class="btn" (click)="triggerMark()" style="margin-left: 8px">Force markForCheck</button>
+  </div>
+</div>

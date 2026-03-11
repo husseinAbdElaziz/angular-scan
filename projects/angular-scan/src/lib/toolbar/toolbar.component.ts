@@ -1,9 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ComponentTracker } from '../component-tracker';
 import { ScanConfigService } from '../scan-config.service';
 
@@ -22,25 +17,29 @@ export class ToolbarComponent {
   protected readonly settingsOpen = signal(false);
 
   protected toggleExpanded(): void {
-    this.expanded.update(v => !v);
-    if (this.expanded()) this.settingsOpen.set(false);
+    this.expanded.update((v) => !v);
+    if (this.expanded()) {
+      this.settingsOpen.set(false);
+    }
   }
 
   protected toggleSettings(): void {
-    this.settingsOpen.update(v => !v);
-    if (this.settingsOpen()) this.expanded.set(false);
+    this.settingsOpen.update((v) => !v);
+    if (this.settingsOpen()) {
+      this.expanded.set(false);
+    }
   }
 
   protected toggleEnabled(): void {
-    this.config.enabled.update(v => !v);
+    this.config.enabled.update((v) => !v);
   }
 
   protected toggleOverlay(): void {
-    this.config.showOverlay.update(v => !v);
+    this.config.showOverlay.update((v) => !v);
   }
 
   protected toggleBadges(): void {
-    this.config.showBadges.update(v => !v);
+    this.config.showBadges.update((v) => !v);
   }
 
   protected resetStats(): void {

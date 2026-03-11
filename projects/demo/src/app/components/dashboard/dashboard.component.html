@@ -1,0 +1,47 @@
+<div class="card">
+  <h3 class="card__title">
+    Dashboard
+    <span class="card__badge card__badge--onpush">OnPush</span>
+    <span class="card__badge card__badge--good">Efficient</span>
+  </h3>
+  <p class="card__desc">
+    An OnPush component with signal-driven state. Every 800ms one metric updates. Only the changed
+    metric flashes — the others stay clean. Contrast with the Counter above.
+  </p>
+
+  <div class="dashboard__controls">
+    <button class="btn" (click)="toggleRunning()">
+      {{ running() ? '⏸ Pause' : '▶ Resume' }}
+    </button>
+    <span class="dashboard__tick">Tick #{{ tickCount() }}</span>
+  </div>
+
+  <div class="dashboard__grid" role="list" aria-label="Live metrics">
+    @for (metric of metrics(); track metric.id) {
+      <div
+        class="metric"
+        role="listitem"
+        [attr.aria-label]="metric.label + ': ' + metric.value + ' ' + metric.unit"
+      >
+        <div class="metric__label">{{ metric.label }}</div>
+        <div class="metric__value">
+          {{ metric.value }}
+          <span class="metric__unit">{{ metric.unit }}</span>
+        </div>
+        <div
+          class="metric__trend"
+          [class.metric__trend--up]="metric.trend === 'up'"
+          [class.metric__trend--down]="metric.trend === 'down'"
+          aria-hidden="true"
+        >
+          {{ metric.trend === 'up' ? '▲' : metric.trend === 'down' ? '▼' : '—' }}
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="dashboard__summary">
+    Average: <strong>{{ average() | number: '1.1-1' }}</strong> across
+    {{ metrics().length }} metrics
+  </div>
+</div>

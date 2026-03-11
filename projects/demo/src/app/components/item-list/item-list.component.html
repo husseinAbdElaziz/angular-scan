@@ -1,0 +1,45 @@
+<div class="card">
+  <h3 class="card__title">
+    Item List
+    <span class="card__badge card__badge--onpush">OnPush</span>
+  </h3>
+  <p class="card__desc">
+    Receives an <code>items</code> input. When the parent passes a new array reference each tick
+    (even with same data), Angular checks this component → <strong>yellow render</strong>. Use
+    <code>trackBy</code> and stable references to fix this.
+  </p>
+
+  <div class="list__stats">
+    <span
+      >Total: <strong>{{ items().length }}</strong></span
+    >
+    <span
+      >Done: <strong>{{ doneCount() }}</strong></span
+    >
+  </div>
+
+  <ul class="list" role="list" aria-label="Item list">
+    @for (item of items(); track item.id) {
+      <li class="list__item" [class.list__item--done]="item.done" role="listitem">
+        <span class="list__dot" aria-hidden="true">{{ item.done ? '✓' : '○' }}</span>
+        {{ item.label }}
+      </li>
+    }
+    @if (items().length === 0) {
+      <li class="list__empty" role="listitem">No items</li>
+    }
+  </ul>
+
+  <div class="list__filter">
+    <label for="filter-input" class="list__filter-label">Filter:</label>
+    <input
+      id="filter-input"
+      class="list__input"
+      type="text"
+      [value]="filter()"
+      (input)="onFilterInput($event)"
+      placeholder="type to filter..."
+      aria-label="Filter items"
+    />
+  </div>
+</div>

@@ -10,15 +10,12 @@ import {
   runInInjectionContext,
 } from '@angular/core';
 import { ComponentTracker } from './component-tracker';
-import type { NgDebugApi } from './models/NgDebugApi';
 import type { PendingUpdate } from './models/PendingUpdate';
-import { PROFILER_EVENTS as PE } from './models/ProfilerEvents';
 import { getNgDebugApi } from './ng-debug';
 import { OverlayService } from './overlay/overlay.service';
 import { ScanConfigService } from './scan-config.service';
 import { ANGULAR_SCAN_OPTIONS, WINDOW } from './tokens';
-import { buildMutatedHosts } from './utils/build-mutated-hosts';
-import { collectTickUpdates } from './utils/collect-tick-updates';
+import { createTickProfiler } from './utils/create-tick-profiler';
 
 @Injectable({ providedIn: 'root' })
 export class ScannerService implements OnDestroy {
@@ -30,22 +27,13 @@ export class ScannerService implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly config = inject(ScanConfigService);
 
-  private removeProfiler: (() => void) | null = null;
+  private teardownProfiler: (() => void) | null = null;
   private afterRenderRef: AfterRenderRef | null = null;
-  private mutationObserver: MutationObserver | null = null;
-
-  private readonly mutatedNodes = new Set<Node>();
-  private readonly tickInstances = new Set<object>();
   private pendingFlush: PendingUpdate[] = [];
-
-  private inSyncPhase = false;
-  private inTick = false;
   private toolbarInstance: object | null = null;
 
   initialize(): void {
-    if (!isDevMode()) return;
-    if (!this.win) return;
-    if (this.options.enabled === false) return;
+    if (!isDevMode() || !this.win || this.options.enabled === false) return;
 
     const ng = getNgDebugApi();
     if (!ng) {
@@ -60,72 +48,17 @@ export class ScannerService implements OnDestroy {
       afterEveryRender({ write: () => this.flushPendingUpdates() }),
     );
 
-    this.mutationObserver = new MutationObserver((records) => {
-      for (const r of records) {
-        this.mutatedNodes.add(r.target);
-        r.addedNodes.forEach((n) => this.mutatedNodes.add(n));
-        r.removedNodes.forEach((n) => this.mutatedNodes.add(n));
-      }
-    });
-
-    this.removeProfiler = ng.ɵsetProfiler((event, instance) => {
-      switch (event) {
-        case PE.ChangeDetectionStart:
-          this.onTickStart();
-          break;
-        case PE.ChangeDetectionSyncStart:
-          this.inSyncPhase = true;
-          break;
-        case PE.ChangeDetectionSyncEnd:
-          this.inSyncPhase = false;
-          break;
-        case PE.TemplateUpdateStart:
-          if (this.config.enabled() && this.inSyncPhase && instance && instance !== this.toolbarInstance) {
-            this.tickInstances.add(instance);
-          }
-          break;
-        case PE.ChangeDetectionEnd:
-          this.onTickEnd(ng);
-          break;
-      }
+    this.teardownProfiler = createTickProfiler({
+      ng,
+      body: this.document.body,
+      shouldTrack: (instance) =>
+        this.config.enabled() && instance !== this.toolbarInstance,
+      onUpdates: (updates) => this.pendingFlush.push(...updates),
     });
   }
 
   setToolbarInstance(instance: object): void {
     this.toolbarInstance = instance;
-  }
-
-  private onTickStart(): void {
-    if (this.inTick) return;
-    this.inTick = true;
-    this.mutatedNodes.clear();
-    this.tickInstances.clear();
-
-    this.mutationObserver?.observe(this.document.body, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      characterData: true,
-    });
-  }
-
-  private onTickEnd(ng: NgDebugApi): void {
-    if (!this.inTick) return;
-    this.inTick = false;
-    this.inSyncPhase = false;
-
-    const pending = this.mutationObserver?.takeRecords() ?? [];
-    for (const r of pending) {
-      this.mutatedNodes.add(r.target);
-      r.addedNodes.forEach((n) => this.mutatedNodes.add(n));
-      r.removedNodes.forEach((n) => this.mutatedNodes.add(n));
-    }
-    this.mutationObserver?.disconnect();
-
-    const mutatedHosts = buildMutatedHosts(this.mutatedNodes, this.document.body, ng);
-    const updates = collectTickUpdates(this.tickInstances, mutatedHosts, ng);
-
-    this.pendingFlush.push(...updates);
   }
 
   private flushPendingUpdates(): void {
@@ -140,12 +73,10 @@ export class ScannerService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.removeProfiler?.();
-    this.removeProfiler = null;
+    this.teardownProfiler?.();
+    this.teardownProfiler = null;
     this.afterRenderRef?.destroy();
     this.afterRenderRef = null;
-    this.mutationObserver?.disconnect();
-    this.mutationObserver = null;
     this.pendingFlush = [];
     this.overlay.destroy();
   }

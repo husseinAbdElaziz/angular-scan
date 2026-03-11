@@ -6,8 +6,6 @@ import type { RenderKind } from '../models/RenderKind';
 const RENDER_COLOR = '255, 200, 0'; // yellow — normal re-render
 const UNNECESSARY_COLOR = '255, 60, 60'; // red — unnecessary render
 
-// --- Pure helpers ---
-
 function createCanvas(doc: Document): HTMLCanvasElement {
   const canvas = doc.createElement('canvas');
   canvas.setAttribute('aria-hidden', 'true');

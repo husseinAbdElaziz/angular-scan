@@ -1,11 +1,13 @@
-import { Injectable, inject, isDevMode, DOCUMENT } from '@angular/core';
+import { DOCUMENT, Injectable, inject, isDevMode } from '@angular/core';
 import type { CanvasOverlay } from '../models/CanvasOverlay';
 import type { ComponentStats } from '../models/ComponentStats';
-import { createCanvasOverlay } from './canvas-overlay';
-import { ANGULAR_SCAN_OPTIONS, WINDOW } from '../tokens';
 import { ScanConfigService } from '../scan-config.service';
+import { ANGULAR_SCAN_OPTIONS, WINDOW } from '../tokens';
+import { createCanvasOverlay } from './canvas-overlay';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class OverlayService {
   private readonly document = inject(DOCUMENT);
   private readonly win = inject(WINDOW);
@@ -16,9 +18,9 @@ export class OverlayService {
   private readonly badges = new Map<Element, HTMLElement>();
 
   initialize(): void {
-    if (!isDevMode()) return;
-    if (!this.win) return;  // null in SSR
-    if (this.options.enabled === false) return;
+    if (!isDevMode() || !this.win || this.options.enabled === false) {
+      return;
+    }
 
     this.canvas = createCanvasOverlay(this.document, this.win);
   }
@@ -26,7 +28,9 @@ export class OverlayService {
   destroy(): void {
     this.canvas?.detach();
     this.canvas = null;
-    for (const badge of this.badges.values()) badge.remove();
+    for (const badge of this.badges.values()) {
+      badge.remove();
+    }
     this.badges.clear();
   }
 
@@ -82,7 +86,7 @@ export class OverlayService {
 
   private ensurePositioned(el: Element): void {
     const htmlEl = el as HTMLElement;
-    if (getComputedStyle(htmlEl).position === 'static') {
+    if (this.win?.getComputedStyle(htmlEl).position === 'static') {
       htmlEl.style.position = 'relative';
     }
   }

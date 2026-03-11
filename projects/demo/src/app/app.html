@@ -1,1 +1,36 @@
-<!-- App uses inline template; this file is unused -->
+<header class="header">
+  <div class="header__inner">
+    <span class="header__logo" aria-hidden="true">◉</span>
+    <h1 class="header__title">angular-scan demo</h1>
+    <p class="header__subtitle">
+      Watch the overlay flash as components re-render. Yellow = render, Red = unnecessary render.
+    </p>
+  </div>
+</header>
+
+<main class="main" id="main-content">
+  <div class="legend" role="note" aria-label="Overlay color legend">
+    <span class="legend__item">
+      <span class="legend__swatch legend__swatch--yellow" aria-hidden="true"></span>
+      Render (DOM changed)
+    </span>
+    <span class="legend__item">
+      <span class="legend__swatch legend__swatch--red" aria-hidden="true"></span>
+      Unnecessary render (DOM unchanged)
+    </span>
+  </div>
+
+  <div class="grid">
+    <!-- Default CD: re-renders on every tick, makes siblings look wasted -->
+    <demo-counter />
+
+    <!-- OnPush with no changing inputs: always unnecessary when parent ticks -->
+    <demo-static-display />
+
+    <!-- OnPush with signal input: re-renders when parent passes new array ref -->
+    <demo-item-list [items]="currentItems()" />
+
+    <!-- OnPush + signals: efficient, only changed metrics re-render -->
+    <demo-dashboard />
+  </div>
+</main>
