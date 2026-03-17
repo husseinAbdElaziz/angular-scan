@@ -9,7 +9,7 @@ import {
   EnvironmentInjector,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { ScannerService } from './scanner.service';
+import { ScannerService } from './services/scanner/scanner.service';
 import { OverlayService } from './overlay/overlay.service';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { ANGULAR_SCAN_OPTIONS } from './tokens';

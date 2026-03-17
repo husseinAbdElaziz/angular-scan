@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { ComponentTracker } from '../component-tracker';
-import { ScanConfigService } from '../scan-config.service';
+import { ComponentTracker } from '../services/component-tracker/component-tracker';
+import { ScanConfigService } from '../services/scan-config/scan-config.service';
 
 @Component({
   selector: 'angular-scan-toolbar',

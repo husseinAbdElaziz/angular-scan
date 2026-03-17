@@ -1,4 +1,4 @@
-import type { NgDebugApi } from '../models/NgDebugApi';
+import type { NgDebugApi } from '../../models/NgDebugApi';
 
 /** Walk mutated nodes UP the DOM to find their owning Angular component host. */
 export function buildMutatedHosts(

@@ -1,6 +1,6 @@
-import type { NgDebugApi } from '../models/NgDebugApi';
-import type { PendingUpdate } from '../models/PendingUpdate';
-import type { RenderKind } from '../models/RenderKind';
+import type { NgDebugApi } from '../../models/NgDebugApi';
+import type { PendingUpdate } from '../../models/PendingUpdate';
+import type { RenderKind } from '../../models/RenderKind';
 
 /** Map checked instances to PendingUpdate records — pure, no side effects. */
 export function collectTickUpdates(

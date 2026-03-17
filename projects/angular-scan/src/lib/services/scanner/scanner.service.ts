@@ -9,13 +9,13 @@ import {
   OnDestroy,
   runInInjectionContext,
 } from '@angular/core';
-import { ComponentTracker } from './component-tracker';
-import type { PendingUpdate } from './models/PendingUpdate';
-import { getNgDebugApi } from './ng-debug';
-import { OverlayService } from './overlay/overlay.service';
-import { ScanConfigService } from './scan-config.service';
-import { ANGULAR_SCAN_OPTIONS, WINDOW } from './tokens';
-import { createTickProfiler } from './utils/create-tick-profiler';
+import { ComponentTracker } from '../component-tracker/component-tracker';
+import type { PendingUpdate } from '../../models/PendingUpdate';
+import { getNgDebugApi } from '../../utils/ng-debug/ng-debug';
+import { OverlayService } from '../../overlay/overlay.service';
+import { ScanConfigService } from '../scan-config/scan-config.service';
+import { ANGULAR_SCAN_OPTIONS, WINDOW } from '../../tokens';
+import { createTickProfiler } from '../../utils/create-tick-profiler/create-tick-profiler';
 
 @Injectable({ providedIn: 'root' })
 export class ScannerService implements OnDestroy {
@@ -33,7 +33,9 @@ export class ScannerService implements OnDestroy {
   private toolbarInstance: object | null = null;
 
   initialize(): void {
-    if (!isDevMode() || !this.win || this.options.enabled === false) return;
+    if (!isDevMode() || !this.win || this.options.enabled === false) {
+      return;
+    }
 
     const ng = getNgDebugApi();
     if (!ng) {

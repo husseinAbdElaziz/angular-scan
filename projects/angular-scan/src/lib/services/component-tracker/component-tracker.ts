@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import type { ComponentStats } from './models/ComponentStats';
-import type { RenderKind } from './models/RenderKind';
+import type { ComponentStats } from '../../models/ComponentStats';
+import type { RenderKind } from '../../models/RenderKind';
 
 @Injectable({ providedIn: 'root' })
 export class ComponentTracker {

@@ -1,3 +1,4 @@
+import type { BrowserWindow } from '../models/BrowserWindow';
 import type { CanvasOverlay } from '../models/CanvasOverlay';
 import type { FlashRect } from '../models/FlashRect';
 import type { OverlayState } from '../models/OverlayState';
@@ -22,7 +23,7 @@ function createCanvas(doc: Document): HTMLCanvasElement {
   return canvas;
 }
 
-function resizeCanvas(canvas: HTMLCanvasElement, win: Window & typeof globalThis): void {
+function resizeCanvas(canvas: HTMLCanvasElement, win: BrowserWindow): void {
   canvas.width = win.innerWidth;
   canvas.height = win.innerHeight;
 }
@@ -31,7 +32,7 @@ function toFlashRect(
   element: Element,
   kind: RenderKind,
   durationMs: number,
-  win: Window & typeof globalThis,
+  win: BrowserWindow,
 ): FlashRect | null {
   const { left, top, width, height } = element.getBoundingClientRect();
   if (width === 0 || height === 0) return null;
@@ -60,7 +61,9 @@ function renderFrame(
 ): FlashRect[] {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const active = rects.filter((r) => now - r.startTime < r.durationMs);
-  for (const r of active) drawRect(ctx, r, now);
+  for (const r of active) {
+    drawRect(ctx, r, now);
+  }
   return active;
 }
 
@@ -68,7 +71,7 @@ function renderFrame(
  * Creates a canvas overlay, attaches it to the document, and starts the render loop.
  * Returns a minimal interface: flash to queue an animation, detach to clean up.
  */
-export function createCanvasOverlay(doc: Document, win: Window & typeof globalThis): CanvasOverlay {
+export function createCanvasOverlay(doc: Document, win: BrowserWindow): CanvasOverlay {
   let state: OverlayState = { rects: [], rafId: 0 };
 
   const canvas = createCanvas(doc);
@@ -90,7 +93,9 @@ export function createCanvasOverlay(doc: Document, win: Window & typeof globalTh
   return {
     flash(element, kind, durationMs) {
       const rect = toFlashRect(element, kind, durationMs, win);
-      if (rect) state = { ...state, rects: [...state.rects, rect] };
+      if (rect) {
+        state = { ...state, rects: [...state.rects, rect] };
+      }
     },
 
     detach() {

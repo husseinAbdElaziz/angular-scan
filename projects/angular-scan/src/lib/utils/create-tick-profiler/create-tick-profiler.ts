@@ -1,7 +1,7 @@
-import type { TickProfilerOptions } from '../models/TickProfilerOptions';
-import { PROFILER_EVENTS as PE } from '../models/ProfilerEvents';
-import { buildMutatedHosts } from './build-mutated-hosts';
-import { collectTickUpdates } from './collect-tick-updates';
+import type { TickProfilerOptions } from '../../models/TickProfilerOptions';
+import { PROFILER_EVENTS as PE } from '../../models/ProfilerEvents';
+import { buildMutatedHosts } from '../build-mutated-hosts/build-mutated-hosts';
+import { collectTickUpdates } from '../collect-tick-updates/collect-tick-updates';
 
 /**
  * Wires up the Angular profiler + MutationObserver to track per-tick render updates.
@@ -29,7 +29,9 @@ export function createTickProfiler({
   const removeProfiler = ng.ɵsetProfiler((event, instance) => {
     switch (event) {
       case PE.ChangeDetectionStart:
-        if (inTick) break;
+        if (inTick) {
+          break;
+        }
         inTick = true;
         mutatedNodes.clear();
         tickInstances.clear();
@@ -53,7 +55,9 @@ export function createTickProfiler({
         break;
 
       case PE.ChangeDetectionEnd: {
-        if (!inTick) break;
+        if (!inTick) {
+          break;
+        }
         inTick = false;
         inSyncPhase = false;
 

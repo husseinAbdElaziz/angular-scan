@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { ANGULAR_SCAN_OPTIONS } from './tokens';
+import { ANGULAR_SCAN_OPTIONS } from '../../tokens';
 
 @Injectable({ providedIn: 'root' })
 export class ScanConfigService {

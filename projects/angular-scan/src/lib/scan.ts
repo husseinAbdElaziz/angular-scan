@@ -1,9 +1,9 @@
 import { isDevMode } from '@angular/core';
 import type { AngularScanOptions } from './models/AngularScanOptions';
-import type { RenderKind } from './models/RenderKind';
-import { getNgDebugApi } from './ng-debug';
+import { clearBadges, createOrUpdateBadge } from './overlay/badge';
 import { createCanvasOverlay } from './overlay/canvas-overlay';
-import { createTickProfiler } from './utils/create-tick-profiler';
+import { createTickProfiler } from './utils/create-tick-profiler/create-tick-profiler';
+import { getNgDebugApi } from './utils/ng-debug/ng-debug';
 
 /**
  * Imperative API for angular-scan.
@@ -21,9 +21,15 @@ import { createTickProfiler } from './utils/create-tick-profiler';
  * @returns A teardown function that stops scanning and removes the overlay.
  */
 export function scan(options: AngularScanOptions = {}): () => void {
-  if (!isDevMode()) return () => {};
-  if (typeof window === 'undefined') return () => {};
-  if (options.enabled === false) return () => {};
+  if (!isDevMode()) {
+    return () => {};
+  }
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+  if (options.enabled === false) {
+    return () => {};
+  }
 
   const ng = getNgDebugApi();
   if (!ng) {
@@ -50,7 +56,7 @@ export function scan(options: AngularScanOptions = {}): () => void {
           renderCounts.set(instance, count);
           overlay.flash(hostElement, kind, durationMs);
           if (showBadges) {
-            updateBadge(badges, hostElement, count, kind);
+            createOrUpdateBadge(badges, hostElement, count, kind);
           }
         }
       });
@@ -60,49 +66,6 @@ export function scan(options: AngularScanOptions = {}): () => void {
   return () => {
     teardown();
     overlay.detach();
-    for (const b of badges.values()) {
-      b.remove();
-    }
-    badges.clear();
+    clearBadges(badges);
   };
 }
-
-function updateBadge(
-  badges: Map<Element, HTMLElement>,
-  hostEl: Element,
-  count: number,
-  kind: RenderKind,
-): void {
-  let badge = badges.get(hostEl);
-
-  if (!badge) {
-    badge = document.createElement('div');
-    badge.setAttribute('aria-hidden', 'true');
-    badge.setAttribute('role', 'presentation');
-    badge.style.cssText = [
-      'position:absolute',
-      'top:2px',
-      'right:2px',
-      'z-index:2147483645',
-      'pointer-events:none',
-      'font:bold 9px/13px monospace',
-      'padding:1px 4px',
-      'border-radius:3px',
-      'min-width:16px',
-      'text-align:center',
-      'color:#fff',
-    ].join(';');
-
-    const htmlEl = hostEl as HTMLElement;
-    if (getComputedStyle(htmlEl).position === 'static') {
-      htmlEl.style.position = 'relative';
-    }
-
-    hostEl.appendChild(badge);
-    badges.set(hostEl, badge);
-  }
-
-  badge.style.background = kind === 'unnecessary' ? '#f44336' : '#ff9800';
-  badge.textContent = String(count);
-}
-
