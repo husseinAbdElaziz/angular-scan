@@ -11,7 +11,7 @@ Zero overhead in production — the entire library is tree-shaken when `isDevMod
 
 Works with both **zone.js** and **zoneless** Angular applications.
 
-![angular-scan demo](https://unpkg.com/angular-scan/demo.gif)
+![angular-scan demo](https://raw.githubusercontent.com/husseinAbdElaziz/angular-scan/main/demo.gif)
 
 👉 **[Live Demo](https://husseinabdelaziz.github.io/angular-scan)**
 
