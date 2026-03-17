@@ -7,8 +7,9 @@ import {
   ApplicationRef,
   createComponent,
   EnvironmentInjector,
+  PLATFORM_ID,
 } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { ScannerService } from './services/scanner/scanner.service';
 import { OverlayService } from './overlay/overlay.service';
 import { ToolbarComponent } from './toolbar/toolbar.component';
@@ -45,6 +46,10 @@ export function provideAngularScan(options: AngularScanOptions = {}): Environmen
   return makeEnvironmentProviders([
     { provide: ANGULAR_SCAN_OPTIONS, useValue: resolvedOptions },
     provideEnvironmentInitializer(() => {
+      if (!isPlatformBrowser(inject(PLATFORM_ID))) {
+        return;
+      }
+
       const overlay = inject(OverlayService);
       const scanner = inject(ScannerService);
       const opts = inject(ANGULAR_SCAN_OPTIONS);
