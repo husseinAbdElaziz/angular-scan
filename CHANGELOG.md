@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1] - 2026-03-21
+
+### Security
+
+- Updated `@angular/ssr` (and related Angular workspace packages) to versions that address **CVE-2026-27738** — open redirect via insufficient sanitization of the `X-Forwarded-Prefix` header when handling internal redirects in Angular SSR ([Snyk SNYK-JS-ANGULARSSR-15357598](https://security.snyk.io/vuln/SNYK-JS-ANGULARSSR-15357598))
+
+### Changed
+
+- Bumped Angular dependencies to **21.2.5** (`@angular/build`, `@angular/cli`, and compiler tooling aligned with **21.2.3** / **21.2.1** where applicable); refreshed lockfile
+
 ## [1.0.0] - 2026-03-18
 
 ### Added
