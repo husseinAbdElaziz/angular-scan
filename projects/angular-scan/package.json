@@ -1,6 +1,6 @@
 {
   "name": "angular-scan",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "description": "Automatically detects and highlights Angular components that are re-rendering — the Angular equivalent of react-scan.",
   "author": "Hussein AbdElAziz",
   "license": "MIT",

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0] - 2026-03-18
+
+### Added
+
+- SSR support: `provideAngularScan()` is now a no-op on the server — uses `isPlatformBrowser` to skip all canvas, DOM, and scanner initialization during server-side rendering
+- Unit tests covering core services, overlay, scanner, and toolbar components
+
+### Changed
+
+- Restructured project layout for better separation of concerns between services, overlay, toolbar, and models
+
 ## [0.2.3] - 2026-03-17
 
 ### Security
