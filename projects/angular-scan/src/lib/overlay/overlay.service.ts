@@ -17,7 +17,7 @@ export class OverlayService {
   private readonly badges = new Map<Element, HTMLElement>();
 
   initialize(): void {
-    if (!isDevMode() || !this.win || this.options.enabled === false) {
+    if (!isDevMode() || !this.win) {
       return;
     }
     this.canvas = createCanvasOverlay(this.document, this.win);

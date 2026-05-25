@@ -3,33 +3,37 @@
   role="complementary"
   aria-label="Angular Scan DevTools"
 >
-  <div class="toolbar__header">
+  <div
+    class="toolbar__header"
+    data-toolbar-drag-handle
+    title="Drag to move panel"
+  >
     <span class="toolbar__logo" aria-hidden="true">◉</span>
     <span class="toolbar__title">angular-scan</span>
 
     <button
       class="toolbar__btn"
       type="button"
-      [attr.aria-pressed]="config.enabled()"
-      [title]="config.enabled() ? 'Pause scanning' : 'Resume scanning'"
-      (click)="toggleEnabled()"
-    >{{ config.enabled() ? '⏸' : '▶' }}</button>
+      data-toolbar-action="toggle-enabled"
+      [attr.aria-pressed]="enabled()"
+      [title]="scanningPausedTitle()"
+    >{{ scanningToggleIcon() }}</button>
 
     <button
       class="toolbar__btn"
       type="button"
+      data-toolbar-action="toggle-settings"
       [attr.aria-pressed]="settingsOpen()"
       title="Settings"
-      (click)="toggleSettings()"
     >⚙</button>
 
     <button
       class="toolbar__btn"
       type="button"
+      data-toolbar-action="toggle-expanded"
       [attr.aria-pressed]="expanded()"
-      [title]="expanded() ? 'Collapse inspector' : 'Expand inspector'"
-      (click)="toggleExpanded()"
-    >{{ expanded() ?  '▼': '▲' }}</button>
+      [title]="expandInspectorTitle()"
+    >{{ expandInspectorIcon() }}</button>
   </div>
 
   <div class="toolbar__stats">
@@ -39,7 +43,7 @@
     </span>
     <span
       class="toolbar__stat"
-      [class.toolbar__stat--warn]="tracker.totalUnnecessary() > 0"
+      [class.toolbar__stat--warn]="showWastedWarning()"
       title="Unnecessary renders: component was checked but DOM did not change"
     >
       <span class="toolbar__stat-label">wasted</span>
@@ -49,47 +53,17 @@
 
   @if (settingsOpen()) {
     <div class="toolbar__settings" role="group" aria-label="Scan settings">
-
-      <label class="toolbar__setting">
-        <span class="toolbar__setting-label">Enable scanning</span>
-        <button
-          class="toolbar__toggle"
-          type="button"
-          role="switch"
-          [attr.aria-checked]="config.enabled()"
-          (click)="toggleEnabled()"
-          [class.toolbar__toggle--on]="config.enabled()"
-        >{{ config.enabled() ? 'ON' : 'OFF' }}</button>
-      </label>
-
-      <label class="toolbar__setting">
-        <span class="toolbar__setting-label">Flash overlay</span>
-        <button
-          class="toolbar__toggle"
-          type="button"
-          role="switch"
-          [attr.aria-checked]="config.showOverlay()"
-          (click)="toggleOverlay()"
-          [class.toolbar__toggle--on]="config.showOverlay()"
-        >{{ config.showOverlay() ? 'ON' : 'OFF' }}</button>
-      </label>
-
-      <label class="toolbar__setting">
-        <span class="toolbar__setting-label">Render badges</span>
-        <button
-          class="toolbar__toggle"
-          type="button"
-          role="switch"
-          [attr.aria-checked]="config.showBadges()"
-          (click)="toggleBadges()"
-          [class.toolbar__toggle--on]="config.showBadges()"
-        >{{ config.showBadges() ? 'ON' : 'OFF' }}</button>
-      </label>
+      @for (toggle of settingToggles; track toggle.key) {
+        <angular-scan-toolbar-setting
+          [label]="toggle.label"
+          [configKey]="toggle.key"
+        />
+      }
 
       <label class="toolbar__setting toolbar__setting--column">
         <span class="toolbar__setting-label">
           Flash duration
-          <span class="toolbar__setting-value">{{ config.flashDurationMs() }}ms</span>
+          <span class="toolbar__setting-value">{{ flashDurationText() }}</span>
         </span>
         <input
           class="toolbar__slider"
@@ -97,8 +71,8 @@
           min="100"
           max="2000"
           step="100"
-          [value]="config.flashDurationMs()"
-          (input)="onFlashDurationChange($event)"
+          data-toolbar-input="flash-duration"
+          [value]="flashDurationMs()"
           aria-label="Flash duration in milliseconds"
         />
       </label>
@@ -106,10 +80,9 @@
       <button
         class="toolbar__reset"
         type="button"
+        data-toolbar-action="reset-stats"
         title="Clear all render stats"
-        (click)="resetStats()"
       >↺ Reset stats</button>
-
     </div>
   }
 

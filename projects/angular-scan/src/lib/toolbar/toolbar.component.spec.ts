@@ -1,9 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { ComponentTracker } from '../services/component-tracker/component-tracker';
 import { makeComponentStats } from '../services/component-tracker/component-tracker.fixtures';
 import { ScanConfigService } from '../services/scan-config/scan-config.service';
 import { ANGULAR_SCAN_OPTIONS } from '../tokens';
 import { ToolbarComponent } from './toolbar.component';
+
+function clickAction(fixture: ComponentFixture<ToolbarComponent>, action: string): void {
+  const button = (fixture.nativeElement as HTMLElement).querySelector(
+    `[data-toolbar-action="${action}"]`,
+  );
+  button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+}
 
 describe('ToolbarComponent', () => {
   let fixture: ComponentFixture<ToolbarComponent>;
@@ -38,77 +46,90 @@ describe('ToolbarComponent', () => {
     expect(values[1].textContent?.trim()).toBe('1');
   });
 
-  describe('toggleExpanded', () => {
+  describe('panel toggles', () => {
     it('toggles the expanded signal', () => {
       expect(component['expanded']()).toBe(false);
-      component['toggleExpanded']();
+      clickAction(fixture, 'toggle-expanded');
       expect(component['expanded']()).toBe(true);
-      component['toggleExpanded']();
+      clickAction(fixture, 'toggle-expanded');
       expect(component['expanded']()).toBe(false);
     });
 
     it('closes settings when expanding', () => {
       component['settingsOpen'].set(true);
-      component['toggleExpanded']();
+      clickAction(fixture, 'toggle-expanded');
       expect(component['settingsOpen']()).toBe(false);
     });
-  });
 
-  describe('toggleSettings', () => {
     it('toggles the settingsOpen signal', () => {
       expect(component['settingsOpen']()).toBe(false);
-      component['toggleSettings']();
+      clickAction(fixture, 'toggle-settings');
       expect(component['settingsOpen']()).toBe(true);
     });
 
     it('closes expanded when opening settings', () => {
       component['expanded'].set(true);
-      component['toggleSettings']();
+      clickAction(fixture, 'toggle-settings');
       expect(component['expanded']()).toBe(false);
     });
-  });
 
-  type ConfigToggleRow = {
-    method: 'toggleEnabled' | 'toggleOverlay' | 'toggleBadges';
-    signal: 'enabled' | 'showOverlay' | 'showBadges';
-  };
+    it('repositions the panel when expanding near the bottom of the viewport', async () => {
+      vi.stubGlobal('innerWidth', 1000);
+      vi.stubGlobal('innerHeight', 800);
 
-  describe('config toggles', () => {
-    it.each([
-      { method: 'toggleEnabled' as const, signal: 'enabled' as const },
-      { method: 'toggleOverlay' as const, signal: 'showOverlay' as const },
-      { method: 'toggleBadges' as const, signal: 'showBadges' as const },
-    ] satisfies ConfigToggleRow[])('$method flips config.$signal', ({ method, signal }: ConfigToggleRow) => {
-      const before = config[signal]();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (component as any)[method]();
-      expect(config[signal]()).toBe(!before);
+      const host = fixture.nativeElement as HTMLElement;
+      Object.defineProperty(host, 'getBoundingClientRect', {
+        configurable: true,
+        value: () => ({ left: 700, top: 700, width: 200, height: 200, right: 900, bottom: 900 }),
+      });
+
+      component['dragPosition'].set({ left: 700, top: 700 });
+      clickAction(fixture, 'toggle-expanded');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(component['dragPosition']()).toEqual({ left: 700, top: 584 });
+      vi.unstubAllGlobals();
     });
   });
 
-  describe('resetStats', () => {
+  describe('config toggles', () => {
+    it('flips config.enabled from the header action', () => {
+      const before = config.enabled();
+      clickAction(fixture, 'toggle-enabled');
+      expect(config.enabled()).toBe(!before);
+    });
+  });
+
+  describe('reset stats', () => {
     it('resets tracker totals to zero', () => {
       tracker.recordRender({}, document.createElement('div'), 'render');
-      component['resetStats']();
+      component['settingsOpen'].set(true);
+      fixture.detectChanges();
+      clickAction(fixture, 'reset-stats');
       expect(tracker.totalRenders()).toBe(0);
     });
   });
 
-  describe('onFlashDurationChange', () => {
-    it('updates config.flashDurationMs with the input value', () => {
-      const event = { target: { value: '1200' } as HTMLInputElement } as unknown as Event;
-      component['onFlashDurationChange'](event);
+  describe('flash duration input', () => {
+    it('updates config.flashDurationMs from the range input', () => {
+      component['settingsOpen'].set(true);
+      fixture.detectChanges();
+      const input = (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-toolbar-input="flash-duration"]',
+      ) as HTMLInputElement;
+      input.value = '1200';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
       expect(config.flashDurationMs()).toBe(1200);
     });
   });
 
   describe('template', () => {
     it.each([
-      { method: 'toggleExpanded' as const, selector: '.toolbar__inspector' },
-      { method: 'toggleSettings' as const, selector: '.toolbar__settings' },
-    ])('shows $selector after $method is called', async ({ method, selector }: { method: 'toggleExpanded' | 'toggleSettings'; selector: string }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (component as any)[method]();
+      { action: 'toggle-expanded', selector: '.toolbar__inspector' },
+      { action: 'toggle-settings', selector: '.toolbar__settings' },
+    ])('shows $selector after $action', async ({ action, selector }) => {
+      clickAction(fixture, action);
       fixture.detectChanges();
       await fixture.whenStable();
       expect((fixture.nativeElement as HTMLElement).querySelector(selector)).not.toBeNull();
@@ -121,7 +142,6 @@ describe('ToolbarComponent', () => {
     });
   });
 
-  // Silence unused import warning — makeComponentStats used to validate fixture export
   it('fixture helper makeComponentStats produces valid ComponentStats shape', () => {
     const stats = makeComponentStats();
     expect(stats.componentName).toBe('TestComponent');

@@ -31,9 +31,10 @@ export class ScannerService implements OnDestroy {
   private afterRenderRef: AfterRenderRef | null = null;
   private pendingFlush: PendingUpdate[] = [];
   private toolbarInstance: object | null = null;
+  private toolbarHost: HTMLElement | null = null;
 
   initialize(): void {
-    if (!isDevMode() || !this.win || this.options.enabled === false) {
+    if (!isDevMode() || !this.win) {
       return;
     }
 
@@ -59,8 +60,9 @@ export class ScannerService implements OnDestroy {
     });
   }
 
-  setToolbarInstance(instance: object): void {
+  setToolbar(instance: object, hostElement: HTMLElement): void {
     this.toolbarInstance = instance;
+    this.toolbarHost = hostElement;
   }
 
   private flushPendingUpdates(): void {
@@ -70,10 +72,17 @@ export class ScannerService implements OnDestroy {
     this.overlay.pruneStaleBadges();
 
     for (const { instance, hostElement, kind } of updates) {
+      if (this.isToolbarHost(hostElement)) {
+        continue;
+      }
       const stats = this.tracker.recordRender(instance, hostElement, kind);
       this.overlay.onComponentChecked(stats);
     }
     this.tracker.snapshotTrackedComponents();
+  }
+
+  private isToolbarHost(hostElement: Element): boolean {
+    return this.toolbarHost?.contains(hostElement) ?? false;
   }
 
   ngOnDestroy(): void {

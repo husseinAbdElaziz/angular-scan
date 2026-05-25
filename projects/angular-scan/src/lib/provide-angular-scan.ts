@@ -79,8 +79,8 @@ function mountToolbar(scanner: ScannerService): void {
   doc.body.appendChild(toolbarRef.location.nativeElement);
   appRef.attachView(toolbarRef.hostView);
 
-  // Tell the scanner to exclude the toolbar's own renders
-  scanner.setToolbarInstance(toolbarRef.instance);
+  // Exclude the toolbar subtree (root + setting toggles, etc.) from tracking
+  scanner.setToolbar(toolbarRef.instance, toolbarRef.location.nativeElement);
 
   destroyRef.onDestroy(() => {
     appRef.detachView(toolbarRef.hostView);

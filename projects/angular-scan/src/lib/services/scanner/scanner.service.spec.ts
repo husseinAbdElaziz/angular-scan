@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import type { BrowserWindow } from '../../models/BrowserWindow';
 import { OverlayService } from '../../overlay/overlay.service';
+import { ScanConfigService } from '../scan-config/scan-config.service';
 import { ANGULAR_SCAN_OPTIONS, WINDOW } from '../../tokens';
 import { ScannerService } from './scanner.service';
 
@@ -34,21 +35,24 @@ describe('ScannerService', () => {
     }
   });
 
-  describe('setToolbarInstance', () => {
-    it('stores the toolbar instance without throwing', () => {
+  describe('setToolbar', () => {
+    it('stores the toolbar instance and host without throwing', () => {
       const svc = setup();
-      expect(() => svc.setToolbarInstance({})).not.toThrow();
+      const host = document.createElement('angular-scan-toolbar');
+      expect(() => svc.setToolbar({}, host)).not.toThrow();
     });
   });
 
   describe('initialize', () => {
-    it.each([
-      { label: 'options.enabled is false', options: { enabled: false }, win: window },
-      { label: 'WINDOW is null (SSR)', options: {}, win: null },
-    ])('is a no-op when $label', ({ options, win }) => {
-      const svc = setup(options, win as BrowserWindow | null);
+    it('is a no-op when WINDOW is null (SSR)', () => {
+      const svc = setup({}, null);
       delete (window as WindowWithNg).ng;
       expect(() => svc.initialize()).not.toThrow();
+    });
+
+    it('starts with scanning disabled when options.enabled is false', () => {
+      setup({ enabled: false });
+      expect(TestBed.inject(ScanConfigService).enabled()).toBe(false);
     });
 
     it('warns when the Angular debug API (window.ng) is absent', () => {
@@ -60,11 +64,12 @@ describe('ScannerService', () => {
       warn.mockRestore();
     });
 
-    it('does not warn when options.enabled is false', () => {
+    it('warns when options.enabled is false but window.ng is absent', () => {
       const svc = setup({ enabled: false });
+      delete (window as WindowWithNg).ng;
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       svc.initialize();
-      expect(warn).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[angular-scan]'));
       warn.mockRestore();
     });
   });
