@@ -5,7 +5,7 @@ Automatically detects and highlights Angular components that are re-rendering �
 - **Yellow flash** — component was checked and its DOM changed (normal re-render)
 - **Red flash** — component was checked but its DOM did **not** change (unnecessary render)
 - **Counter badge** — cumulative render count on each component host element
-- **Toolbar HUD** — floating panel with total checks, wasted renders, and a per-component inspector
+- **Toolbar HUD** — draggable floating panel with live stats, runtime toggles, flash-duration slider, reset, and a per-component inspector
 
 Zero overhead in production — the entire library is tree-shaken when `isDevMode()` returns `false`.
 
@@ -106,6 +106,39 @@ The canvas overlay (`position: fixed`, full viewport, `pointer-events: none`) us
 | Red flash | Component checked but DOM unchanged | Parent uses `Default` CD strategy; child is `OnPush` with no changed inputs |
 | High wasted count on a component | It's being checked unnecessarily on every tick | Wrap it in `OnPush`; ensure parent isn't `Default` CD |
 | Counter badge turns red | More unnecessary than necessary renders | Same as above — component is `OnPush` but still gets walked |
+
+---
+
+## Toolbar HUD
+
+The floating toolbar mounts in the bottom-right corner and can be dragged anywhere on screen. The panel is clamped inside the viewport on drag, resize, and when expanding sections near a screen edge.
+
+**Header**
+
+| Button | Action |
+|--------|--------|
+| ⏸ / ▶ | Pause or resume scanning |
+| ⚙ | Open the settings panel |
+| ▲ / ▼ | Expand or collapse the per-component inspector |
+
+The header itself is the drag handle — grab anywhere outside the buttons to move the panel.
+
+**Stats**
+
+- **CHECKS** — total components checked since the last reset
+- **WASTED** — total unnecessary renders (turns red when > 0)
+
+**Settings panel** (⚙)
+
+- **Enable scanning** — mirrors the header pause button
+- **Flash overlay** — show/hide the canvas flashes
+- **Render badges** — show/hide the counter badges on host elements
+- **Flash duration** — slider, 100 ms – 2000 ms
+- **↺ Reset stats** — clears all render counts and the inspector list
+
+**Inspector** (▲) lists each tracked component with its name, total render count, and a `nW` wasted suffix. Rows whose most recent render was "unnecessary" are highlighted red.
+
+Pass `showToolbar: false` to disable the HUD entirely while keeping flashes and badges.
 
 ---
 
