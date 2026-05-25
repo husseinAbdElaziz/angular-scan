@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] - 2026-05-25
+
+### Added
+
+- Draggable **Toolbar HUD** — pause/resume, live check and wasted counts, settings (flashes, badges, flash duration 100–2000 ms, reset), and a per-component inspector; disable with `showToolbar: false`
+- Viewport clamping keeps the panel on screen when dragging, resizing, or expanding sections
+- Badges and inspector entries drop automatically when tracked host elements leave the DOM
+
 ## [1.0.1] - 2026-03-21
 
 ### Security
