@@ -6,6 +6,8 @@ import type { RenderKind } from '../../models/RenderKind';
 export class ComponentTracker {
   private readonly byInstance = new WeakMap<object, ComponentStats>();
   private readonly byElement = new Map<Element, object>();
+  /** Strong refs so reset() can delete matching WeakMap entries. */
+  private readonly trackedInstances = new Set<object>();
 
   readonly totalRenders = signal(0);
   readonly totalUnnecessary = signal(0);
@@ -33,6 +35,7 @@ export class ComponentTracker {
 
     this.byInstance.set(instance, next);
     this.byElement.set(hostElement, instance);
+    this.trackedInstances.add(instance);
 
     this.totalRenders.update((n) => n + 1);
     if (isUnnecessary) {
@@ -43,6 +46,7 @@ export class ComponentTracker {
   }
 
   snapshotTrackedComponents(): void {
+    this.pruneDisconnectedHosts();
     const list: ComponentStats[] = [];
     for (const [, instance] of this.byElement) {
       const stats = this.byInstance.get(instance);
@@ -54,9 +58,23 @@ export class ComponentTracker {
   }
 
   reset(): void {
+    for (const instance of this.trackedInstances) {
+      this.byInstance.delete(instance);
+    }
+    this.trackedInstances.clear();
     this.byElement.clear();
     this.totalRenders.set(0);
     this.totalUnnecessary.set(0);
     this.trackedComponents.set([]);
+  }
+
+  private pruneDisconnectedHosts(): void {
+    for (const [el, instance] of this.byElement) {
+      if (!el.isConnected) {
+        this.byElement.delete(el);
+        this.byInstance.delete(instance);
+        this.trackedInstances.delete(instance);
+      }
+    }
   }
 }

@@ -69,3 +69,16 @@ export function clearBadges(badges: Map<Element, HTMLElement>): void {
   }
   badges.clear();
 }
+
+/** Removes badge map entries whose host elements are no longer in the document. */
+export function pruneDisconnectedBadges(
+  badges: Map<Element, HTMLElement>,
+  doc: Document = document,
+): void {
+  for (const [el, badge] of badges) {
+    if (!doc.contains(el)) {
+      badge.remove();
+      badges.delete(el);
+    }
+  }
+}

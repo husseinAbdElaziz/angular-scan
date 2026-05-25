@@ -1,4 +1,10 @@
-import { BADGE_COLORS, clearBadges, createOrUpdateBadge, ensurePositioned } from './badge';
+import {
+  BADGE_COLORS,
+  clearBadges,
+  createOrUpdateBadge,
+  ensurePositioned,
+  pruneDisconnectedBadges,
+} from './badge';
 import type { RenderKind } from '../models/RenderKind';
 
 describe('badge', () => {
@@ -116,6 +122,33 @@ describe('badge', () => {
       clearBadges(badges);
 
       expect(badges.size).toBe(0);
+      el.remove();
+    });
+  });
+
+  describe('pruneDisconnectedBadges', () => {
+    it('removes map entries for hosts no longer in the document', () => {
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+      const badges = new Map<Element, HTMLElement>();
+
+      createOrUpdateBadge(badges, el, 1, 'render');
+      el.remove();
+
+      pruneDisconnectedBadges(badges, document);
+
+      expect(badges.size).toBe(0);
+    });
+
+    it('keeps badges for hosts still connected', () => {
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+      const badges = new Map<Element, HTMLElement>();
+
+      createOrUpdateBadge(badges, el, 1, 'render');
+      pruneDisconnectedBadges(badges, document);
+
+      expect(badges.has(el)).toBe(true);
       el.remove();
     });
   });

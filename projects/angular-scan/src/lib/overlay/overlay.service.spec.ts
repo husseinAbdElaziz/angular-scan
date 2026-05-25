@@ -63,6 +63,23 @@ describe('OverlayService', () => {
     });
   });
 
+  describe('pruneStaleBadges', () => {
+    it('removes badge map entries for disconnected hosts', () => {
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+
+      svc.onComponentChecked(makeComponentStats({ hostElement: el }));
+      el.remove();
+      svc.pruneStaleBadges();
+
+      const el2 = document.createElement('div');
+      document.body.appendChild(el2);
+      svc.onComponentChecked(makeComponentStats({ hostElement: el2 }));
+      expect(el2.querySelector('div')).not.toBeNull();
+      el2.remove();
+    });
+  });
+
   describe('removeBadge', () => {
     it('removes the badge for the given element', () => {
       const el = document.createElement('div');

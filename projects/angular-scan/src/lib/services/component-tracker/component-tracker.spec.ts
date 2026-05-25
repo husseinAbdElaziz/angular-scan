@@ -55,27 +55,46 @@ describe('ComponentTracker', () => {
 
   describe('snapshotTrackedComponents', () => {
     it('populates trackedComponents from recorded renders', () => {
-      tracker.recordRender({}, document.createElement('div'), 'render');
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+      tracker.recordRender({}, el, 'render');
       tracker.snapshotTrackedComponents();
       expect(tracker.trackedComponents()).toHaveLength(1);
+      el.remove();
     });
 
     it('reflects the latest stats in the snapshot', () => {
       const instance = {};
       const el = document.createElement('div');
+      document.body.appendChild(el);
       tracker.recordRender(instance, el, 'render');
       tracker.recordRender(instance, el, 'unnecessary');
       tracker.snapshotTrackedComponents();
       const [comp] = tracker.trackedComponents();
       expect(comp.totalRenders).toBe(2);
       expect(comp.unnecessaryRenders).toBe(1);
+      el.remove();
     });
 
     it('includes one entry per unique host element', () => {
-      tracker.recordRender({}, document.createElement('div'), 'render');
-      tracker.recordRender({}, document.createElement('span'), 'render');
+      const div = document.createElement('div');
+      const span = document.createElement('span');
+      document.body.append(div, span);
+      tracker.recordRender({}, div, 'render');
+      tracker.recordRender({}, span, 'render');
       tracker.snapshotTrackedComponents();
       expect(tracker.trackedComponents()).toHaveLength(2);
+      div.remove();
+      span.remove();
+    });
+
+    it('drops disconnected host elements from the inspector list', () => {
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+      tracker.recordRender({}, el, 'render');
+      el.remove();
+      tracker.snapshotTrackedComponents();
+      expect(tracker.trackedComponents()).toEqual([]);
     });
   });
 
@@ -87,6 +106,17 @@ describe('ComponentTracker', () => {
       expect(tracker.totalRenders()).toBe(0);
       expect(tracker.totalUnnecessary()).toBe(0);
       expect(tracker.trackedComponents()).toEqual([]);
+    });
+
+    it('clears per-instance stats so the same instance starts fresh after reset', () => {
+      const instance = {};
+      const el = document.createElement('div');
+      tracker.recordRender(instance, el, 'render');
+      tracker.recordRender(instance, el, 'render');
+      tracker.reset();
+      const stats = tracker.recordRender(instance, el, 'render');
+      expect(stats.totalRenders).toBe(1);
+      expect(tracker.totalRenders()).toBe(1);
     });
   });
 });

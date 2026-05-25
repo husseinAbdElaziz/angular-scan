@@ -1,6 +1,6 @@
 import { isDevMode } from '@angular/core';
 import type { AngularScanOptions } from './models/AngularScanOptions';
-import { clearBadges, createOrUpdateBadge } from './overlay/badge';
+import { clearBadges, createOrUpdateBadge, pruneDisconnectedBadges } from './overlay/badge';
 import { createCanvasOverlay } from './overlay/canvas-overlay';
 import { createTickProfiler } from './utils/create-tick-profiler/create-tick-profiler';
 import { getNgDebugApi } from './utils/ng-debug/ng-debug';
@@ -51,6 +51,7 @@ export function scan(options: AngularScanOptions = {}): () => void {
     body: document.body,
     onUpdates: (updates) => {
       queueMicrotask(() => {
+        pruneDisconnectedBadges(badges, document);
         for (const { instance, hostElement, kind } of updates) {
           const count = (renderCounts.get(instance) ?? 0) + 1;
           renderCounts.set(instance, count);

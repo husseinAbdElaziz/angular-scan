@@ -67,6 +67,8 @@ export class ScannerService implements OnDestroy {
     const updates = this.pendingFlush.splice(0);
     if (updates.length === 0) return;
 
+    this.overlay.pruneStaleBadges();
+
     for (const { instance, hostElement, kind } of updates) {
       const stats = this.tracker.recordRender(instance, hostElement, kind);
       this.overlay.onComponentChecked(stats);

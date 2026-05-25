@@ -10,7 +10,7 @@
     <button
       class="toolbar__btn"
       type="button"
-      [attr.aria-pressed]="!config.enabled()"
+      [attr.aria-pressed]="config.enabled()"
       [title]="config.enabled() ? 'Pause scanning' : 'Resume scanning'"
       (click)="toggleEnabled()"
     >{{ config.enabled() ? '⏸' : '▶' }}</button>
@@ -29,7 +29,7 @@
       [attr.aria-pressed]="expanded()"
       [title]="expanded() ? 'Collapse inspector' : 'Expand inspector'"
       (click)="toggleExpanded()"
-    >{{ expanded() ? '▲' : '▼' }}</button>
+    >{{ expanded() ?  '▼': '▲' }}</button>
   </div>
 
   <div class="toolbar__stats">

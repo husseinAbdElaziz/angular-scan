@@ -6,6 +6,7 @@ import {
   inject,
   ApplicationRef,
   createComponent,
+  DestroyRef,
   EnvironmentInjector,
   PLATFORM_ID,
 } from '@angular/core';
@@ -69,6 +70,7 @@ function mountToolbar(scanner: ScannerService): void {
   const injector = inject(EnvironmentInjector);
   const doc = inject(DOCUMENT);
   const appRef = inject(ApplicationRef);
+  const destroyRef = inject(DestroyRef);
 
   // Creating outside the component tree means it won't appear in CD tracking.
   // Attaching to ApplicationRef ensures signals and change detection work.
@@ -79,4 +81,9 @@ function mountToolbar(scanner: ScannerService): void {
 
   // Tell the scanner to exclude the toolbar's own renders
   scanner.setToolbarInstance(toolbarRef.instance);
+
+  destroyRef.onDestroy(() => {
+    appRef.detachView(toolbarRef.hostView);
+    toolbarRef.destroy();
+  });
 }

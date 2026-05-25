@@ -3,7 +3,7 @@ import type { CanvasOverlay } from '../models/CanvasOverlay';
 import type { ComponentStats } from '../models/ComponentStats';
 import { ScanConfigService } from '../services/scan-config/scan-config.service';
 import { ANGULAR_SCAN_OPTIONS, WINDOW } from '../tokens';
-import { clearBadges, createOrUpdateBadge } from './badge';
+import { clearBadges, createOrUpdateBadge, pruneDisconnectedBadges } from './badge';
 import { createCanvasOverlay } from './canvas-overlay';
 
 @Injectable({ providedIn: 'root' })
@@ -27,6 +27,10 @@ export class OverlayService {
     this.canvas?.detach();
     this.canvas = null;
     clearBadges(this.badges);
+  }
+
+  pruneStaleBadges(): void {
+    pruneDisconnectedBadges(this.badges, this.document);
   }
 
   onComponentChecked(stats: ComponentStats): void {
