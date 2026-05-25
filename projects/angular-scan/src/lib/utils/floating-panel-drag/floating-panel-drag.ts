@@ -25,15 +25,17 @@ export class FloatingPanelDrag {
   private listenersAttached = false;
 
   private readonly onDragMove = (event: PointerEvent): void => {
-    if (!this.dragActive || event.pointerId !== this.dragActive.pointerId) {
+    const drag = this.dragActive;
+    if (!drag || event.pointerId !== drag.pointerId) {
       return;
     }
 
-    const { left, top } = this.clampPosition(
-      this.dragActive.originLeft + (event.clientX - this.dragActive.startX),
-      this.dragActive.originTop + (event.clientY - this.dragActive.startY),
+    this.options.setPosition(
+      this.clampPosition(
+        drag.originLeft + (event.clientX - drag.startX),
+        drag.originTop + (event.clientY - drag.startY),
+      ),
     );
-    this.options.setPosition({ left, top });
   };
 
   private readonly onDragEnd = (event: PointerEvent): void => {

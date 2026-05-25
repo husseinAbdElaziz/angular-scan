@@ -127,10 +127,11 @@ export class ToolbarComponent {
   }
 
   protected onHostPointerDown(event: PointerEvent): void {
-    if (!(event.target as HTMLElement).closest('[data-toolbar-drag-handle]')) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('[data-toolbar-drag-handle]')) {
       return;
     }
-    if ((event.target as HTMLElement).closest('button')) {
+    if (target.closest('button')) {
       return;
     }
     this.panelDrag.onPointerDown(event);

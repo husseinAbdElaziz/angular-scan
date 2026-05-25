@@ -6,10 +6,9 @@ export function buildFloatingPanelHostStyles(
   position: PanelPosition | null,
   marginPx = DEFAULT_FLOATING_PANEL_MARGIN_PX,
 ): Record<string, string> {
-  const base = { display: 'block' };
   if (position === null) {
     return {
-      ...base,
+      display: 'block',
       bottom: `${marginPx}px`,
       right: `${marginPx}px`,
       left: 'auto',
@@ -17,7 +16,7 @@ export function buildFloatingPanelHostStyles(
     };
   }
   return {
-    ...base,
+    display: 'block',
     left: `${position.left}px`,
     top: `${position.top}px`,
     bottom: 'auto',
