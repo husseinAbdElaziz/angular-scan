@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/husseinAbdElaziz/angular-scan/main/projects/angular-scan/logo.svg" alt="angular-scan logo" width="128" height="128">
+</p>
+
 # angular-scan
 
 Automatically detects and highlights Angular components that are re-rendering — the Angular equivalent of [react-scan](https://github.com/aidenybai/react-scan).

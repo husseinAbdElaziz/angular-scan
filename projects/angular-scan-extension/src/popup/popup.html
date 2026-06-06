@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Angular Scan</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Angular Scan</h1>
+      <span id="version">v0.1.0</span>
+    </header>
+
+    <section id="detection" class="status status--unknown">
+      <span class="status__dot"></span>
+      <span class="status__text">Detecting…</span>
+    </section>
+
+    <section class="toggle">
+      <label>
+        <input type="checkbox" id="enabled" />
+        <span>Enable on this site</span>
+      </label>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <dt>Checks</dt>
+        <dd id="stat-checks">0</dd>
+      </div>
+      <div class="stat">
+        <dt>Wasted</dt>
+        <dd id="stat-wasted">0</dd>
+      </div>
+      <div class="stat">
+        <dt>Tick ms</dt>
+        <dd id="stat-duration">0</dd>
+      </div>
+    </section>
+
+    <section class="settings">
+      <h2>Settings</h2>
+      <label><input type="checkbox" id="opt-overlay" /> Flash overlay</label>
+      <label><input type="checkbox" id="opt-badges" /> Render badges</label>
+      <label><input type="checkbox" id="opt-log" /> Log to console</label>
+      <label class="slider">
+        <span>Flash <output id="opt-flash-out">500</output> ms</span>
+        <input type="range" id="opt-flash" min="100" max="2000" step="50" />
+      </label>
+    </section>
+
+    <section class="report" id="report-section">
+      <header class="report__header">
+        <h2>Components <small id="report-hint">(row → flash · name → copy path)</small></h2>
+        <div class="report__actions">
+          <button id="report-refresh" type="button" title="Refresh">↻</button>
+          <button id="report-open" type="button" title="Open full report reader">📊 Report</button>
+          <button id="report-export-json" type="button" title="Download JSON">JSON</button>
+          <button id="report-export-csv" type="button" title="Download CSV">CSV</button>
+        </div>
+      </header>
+      <table class="report__table">
+        <thead>
+          <tr>
+            <th data-sort="name">Name</th>
+            <th data-sort="renders" class="num">Renders</th>
+            <th data-sort="wasted" class="num">Wasted</th>
+            <th data-sort="rps5s" class="num" title="Renders / sec last 5s">Rate</th>
+            <th data-sort="rpsPeak" class="num" title="Peak renders / sec">Peak</th>
+            <th data-sort="source">Source</th>
+          </tr>
+        </thead>
+        <tbody id="report-body">
+          <tr><td colspan="6" class="report__empty">No data — enable scanning.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <button id="reset" type="button">Reset stats</button>
+    </footer>
+
+    <script type="module" src="popup.ts"></script>
+  </body>
+</html>

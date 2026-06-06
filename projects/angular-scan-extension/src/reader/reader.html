@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Angular Scan — Report Reader</title>
+    <link rel="stylesheet" href="reader.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="page__header">
+        <h1>Angular Scan — Report</h1>
+        <p class="source-label" id="source-label">No report loaded</p>
+      </header>
+
+      <section class="source" aria-label="Report source">
+        <div class="source__modes" role="radiogroup" aria-label="Source mode">
+          <label><input type="radio" name="mode" id="mode-live" value="live" checked /> Live tab</label>
+          <label><input type="radio" name="mode" id="mode-file" value="file" /> Upload file</label>
+        </div>
+
+        <div class="source__panel" id="panel-live">
+          <label class="field">
+            <span class="sr-only">Tab</span>
+            <select id="tab-select" aria-label="Choose a tab"></select>
+          </label>
+          <button id="refresh" type="button" title="Refresh">↻ Refresh</button>
+          <label class="inline"><input type="checkbox" id="auto" /> Auto-refresh</label>
+        </div>
+
+        <div class="source__panel" id="panel-file" hidden>
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload report file">
+            <input type="file" id="file-input" accept=".json,.csv" hidden />
+            <span>Drop a <strong>.json</strong> or <strong>.csv</strong> report here, or <u>browse</u></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="cards" id="cards" aria-label="Summary" hidden>
+        <div class="card"><dt>Components</dt><dd id="c-components">0</dd></div>
+        <div class="card"><dt>Renders</dt><dd id="c-renders">0</dd></div>
+        <div class="card"><dt>Wasted</dt><dd id="c-wasted">0</dd></div>
+        <div class="card"><dt>Wasted %</dt><dd id="c-wasted-pct">0%</dd></div>
+        <div class="card"><dt>Peak rate</dt><dd id="c-peak">0</dd></div>
+        <div class="card"><dt>With source</dt><dd id="c-source-pct">0%</dd></div>
+      </section>
+
+      <section class="bars" id="bars-section" aria-label="Top components by renders" hidden>
+        <h2>Top by renders <small>(render / <span class="legend legend--wasted">wasted</span>)</small></h2>
+        <div id="bars"></div>
+      </section>
+
+      <section class="table-wrap" id="table-section" hidden>
+        <div class="controls">
+          <input type="search" id="search" placeholder="Filter by name…" aria-label="Filter by name" />
+          <label class="inline"><input type="checkbox" id="only-wasted" /> Only wasted</label>
+          <span class="controls__count" id="row-count"></span>
+        </div>
+        <table class="report">
+          <thead>
+            <tr>
+              <th data-sort="name">Name</th>
+              <th data-sort="renders" class="num">Renders</th>
+              <th data-sort="wasted" class="num">Wasted</th>
+              <th data-sort="rps5s" class="num" title="Renders / sec last 5s">Rate</th>
+              <th data-sort="rpsPeak" class="num" title="Peak renders / sec">Peak</th>
+              <th data-sort="source">Source</th>
+            </tr>
+          </thead>
+          <tbody id="report-body"></tbody>
+        </table>
+      </section>
+
+      <p class="empty" id="empty">Pick a live tab or upload a report to begin.</p>
+    </main>
+    <script type="module" src="reader.ts"></script>
+  </body>
+</html>

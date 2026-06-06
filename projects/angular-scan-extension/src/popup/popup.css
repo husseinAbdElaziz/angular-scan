@@ -1,0 +1,346 @@
+:root {
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  width: 420px;
+  margin: 0;
+  padding: 0;
+  background: Canvas;
+  color: CanvasText;
+  font-size: 13px;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+header h1 {
+  font-size: 15px;
+  margin: 0;
+}
+
+header #version {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+section {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.15);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #999;
+}
+
+.status--yes .status__dot {
+  background: #1aaf5d;
+}
+
+.status--prod .status__dot {
+  background: #888;
+}
+
+.status--no .status__dot {
+  background: #d62828;
+}
+
+.toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.stat {
+  background: rgba(127, 127, 127, 0.08);
+  padding: 6px 8px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.stat dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.stat dd {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+  opacity: 0.7;
+}
+
+.settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.settings label.slider {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.settings label.slider span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.settings label.field {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.settings label.field span {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.settings label.field select,
+.settings label.field input[type='text'] {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 4px;
+  background: Canvas;
+  color: inherit;
+}
+
+.report__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.report__header h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 0.7;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.report__header h2 small {
+  text-transform: none;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.report__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.report__actions button {
+  background: rgba(127, 127, 127, 0.15);
+  color: inherit;
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.report__actions button:hover {
+  background: rgba(127, 127, 127, 0.25);
+}
+
+.report__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.report__table thead th {
+  text-align: left;
+  font-weight: 600;
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+  cursor: pointer;
+  user-select: none;
+}
+
+.report__table thead th.num {
+  text-align: right;
+}
+
+.report__table thead th.sorted::after {
+  content: '▾';
+  display: inline-block;
+  margin-left: 3px;
+  opacity: 0.6;
+}
+
+.report__table thead th.sorted.asc::after {
+  transform: scaleY(-1);
+}
+
+.report__table tbody td {
+  padding: 3px 6px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.08);
+}
+
+.report__table tbody td.num {
+  text-align: right;
+}
+
+.report__table tbody tr.wasted-heavy td.num.wasted {
+  color: #d62828;
+  font-weight: 600;
+}
+
+.report__table tbody tr {
+  cursor: pointer;
+}
+
+.report__table tbody tr:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.report__table td.source {
+  font-size: 10px;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.report__empty {
+  text-align: center;
+  opacity: 0.5;
+  padding: 12px !important;
+}
+
+.report__table td.name button.name-link {
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report__table td.name button.name-link:hover {
+  text-decoration: underline;
+  color: #1a73e8;
+}
+
+/* No source location available — copy-only (still clickable to copy the name). */
+.report__table td.name.no-source button.name-link {
+  opacity: 0.65;
+}
+
+.report__table td.name.no-source button.name-link:hover {
+  color: inherit;
+  text-decoration: underline dotted;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 20, 0.92);
+  color: #fff;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+  max-width: 90%;
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.report__table tbody {
+  max-height: 200px;
+  display: block;
+  overflow-y: auto;
+}
+
+.report__table thead,
+.report__table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px;
+}
+
+footer button {
+  background: rgba(127, 127, 127, 0.15);
+  color: inherit;
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+footer button:hover {
+  background: rgba(127, 127, 127, 0.25);
+}
+
+body[data-disabled='true'] .settings,
+body[data-disabled='true'] .stats,
+body[data-disabled='true'] footer {
+  opacity: 0.5;
+  pointer-events: none;
+}
