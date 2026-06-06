@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/husseinAbdElaziz/angular-scan/main/projects/angular-scan/logo.svg" alt="angular-scan logo" width="128" height="128">
+</p>
+
 # angular-scan
 
 Automatically detects and highlights Angular components that are re-rendering — the Angular equivalent of [react-scan](https://github.com/aidenybai/react-scan).
@@ -37,9 +41,7 @@ import { ApplicationConfig } from '@angular/core';
 import { provideAngularScan } from 'angular-scan';
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideAngularScan(),
-  ],
+  providers: [provideAngularScan()],
 };
 ```
 
@@ -72,10 +74,10 @@ stop(); // removes overlay and stops tracking
 
 ```ts
 provideAngularScan({
-  enabled: true,         // set false to disable entirely (default: true)
-  flashDurationMs: 500,  // how long the flash animation lasts in ms (default: 500)
-  showBadges: true,      // show render count badges on host elements (default: true)
-  showToolbar: true,     // show the floating toolbar HUD (default: true)
+  enabled: true, // set false to disable entirely (default: true)
+  flashDurationMs: 500, // how long the flash animation lasts in ms (default: 500)
+  showBadges: true, // show render count badges on host elements (default: true)
+  showToolbar: true, // show the floating toolbar HUD (default: true)
 });
 ```
 
@@ -100,12 +102,12 @@ The canvas overlay (`position: fixed`, full viewport, `pointer-events: none`) us
 
 ## Interpreting the output
 
-| Signal | Meaning | Common cause |
-|--------|---------|-------------|
-| Yellow flash | Component re-rendered (DOM changed) | Normal update — signal/input changed |
-| Red flash | Component checked but DOM unchanged | Parent uses `Default` CD strategy; child is `OnPush` with no changed inputs |
-| High wasted count on a component | It's being checked unnecessarily on every tick | Wrap it in `OnPush`; ensure parent isn't `Default` CD |
-| Counter badge turns red | More unnecessary than necessary renders | Same as above — component is `OnPush` but still gets walked |
+| Signal                           | Meaning                                        | Common cause                                                                |
+| -------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| Yellow flash                     | Component re-rendered (DOM changed)            | Normal update — signal/input changed                                        |
+| Red flash                        | Component checked but DOM unchanged            | Parent uses `Default` CD strategy; child is `OnPush` with no changed inputs |
+| High wasted count on a component | It's being checked unnecessarily on every tick | Wrap it in `OnPush`; ensure parent isn't `Default` CD                       |
+| Counter badge turns red          | More unnecessary than necessary renders        | Same as above — component is `OnPush` but still gets walked                 |
 
 ---
 
@@ -115,11 +117,11 @@ The floating toolbar mounts in the bottom-right corner and can be dragged anywhe
 
 **Header**
 
-| Button | Action |
-|--------|--------|
-| ⏸ / ▶ | Pause or resume scanning |
-| ⚙ | Open the settings panel |
-| ▲ / ▼ | Expand or collapse the per-component inspector |
+| Button | Action                                         |
+| ------ | ---------------------------------------------- |
+| ⏸ / ▶  | Pause or resume scanning                       |
+| ⚙      | Open the settings panel                        |
+| ▲ / ▼  | Expand or collapse the per-component inspector |
 
 The header itself is the drag handle — grab anywhere outside the buttons to move the panel.
 
