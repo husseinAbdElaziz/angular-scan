@@ -86,7 +86,22 @@ async function refreshReport(): Promise<void> {
   renderReport();
 }
 
+// Header Checks/Wasted are cumulative session totals. The tick summary only
+// carries per-tick counts, so sum the report (the tracker is the cumulative
+// source of truth) to keep the header consistent with the components table.
+function updateTotals(): void {
+  let checks = 0;
+  let wasted = 0;
+  for (const r of latestReport) {
+    checks += r.renders;
+    wasted += r.wasted;
+  }
+  statChecks.textContent = String(checks);
+  statWasted.textContent = String(wasted);
+}
+
 function renderReport(): void {
+  updateTotals();
   const rows = sortReport(latestReport, sortKey, sortDesc);
   reportSection.querySelectorAll<HTMLElement>('thead th').forEach((th) => {
     const active = th.dataset.sort === sortKey;
@@ -224,9 +239,8 @@ function applyState(state: BgTabStateResponse): void {
   document.body.dataset.disabled = String(!o.enabled || state.detected.mode !== 'yes');
 
   const s = state.lastSummary;
-  statChecks.textContent = s ? String(s.checked) : '0';
-  statWasted.textContent = s ? String(s.unnecessary) : '0';
   statDuration.textContent = s ? s.durationMs.toFixed(1) : '0';
+  updateTotals();
 }
 
 function wireInputs(): void {
