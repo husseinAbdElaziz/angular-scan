@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0] - 2026-06-07
+
+### Added
+
+- **Angular 22 support** — verified the dev-mode profiler contract is unchanged on v22; `peerDependencies` widened to `>=20.0.0 <23.0.0` (tested on 20, 21, and 22)
+- README link to the **[angular-scan Chrome extension](https://chromewebstore.google.com/detail/bgdecfngmafoiopdckbffadnjcfmcdli)**
+
 ## [1.1.0] - 2026-05-25
 
 ### Added
