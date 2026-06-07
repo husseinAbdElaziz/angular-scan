@@ -21,6 +21,12 @@ Works with both **zone.js** and **zoneless** Angular applications.
 
 ---
 
+## Chrome Extension
+
+Prefer zero setup? Install the **[angular-scan Chrome extension](https://chromewebstore.google.com/detail/bgdecfngmafoiopdckbffadnjcfmcdli)** to scan any Angular dev app right from your browser — no code changes or dependencies required.
+
+---
+
 ## Installation
 
 ```bash
