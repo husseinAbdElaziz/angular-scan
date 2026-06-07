@@ -152,6 +152,6 @@ Pass `showToolbar: false` to disable the HUD entirely while keeping flashes and 
 
 ## Requirements
 
-- Angular **≥ 20**
+- Angular **≥ 20** — tested on **20, 21, and 22**
 - Must be used in **development mode** (`ng serve` / `ng build --configuration development`)
 - The Angular debug APIs (`window.ng`) are only available in dev mode — `angular-scan` is silently disabled otherwise
